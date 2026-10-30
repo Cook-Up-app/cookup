@@ -11,3 +11,12 @@ Toutes épinglées dans `uv.lock`, publiées avant le 2026-10-17 (`exclude-newer
 | `pytest`, `pytest-django` (dev) | Tests | M0 |
 | `ruff` (dev) | Lint, format, règles de sécurité `S` | M0 |
 | `pip-audit` (dev) | Audit des vulnérabilités | M0 |
+
+## Exceptions à la règle des deux semaines
+
+| Paquet | Version | Raison |
+| --- | --- | --- |
+| `certifi` (transitive de `pip-audit`, dev) | 2026.10.18 | Corrige PYSEC-2026-4320 ; publiée le 2026-10-18, soit moins de 2 semaines. Hors production. |
+| `filelock` (transitive de `pip-audit`, dev) | 4.2.1 | Corrige 17 CVE (4.2.0 vulnérable) ; publiée le 2026-10-17. Hors production. |
+
+Dès que ces versions auront deux semaines, l'exception peut être retirée en avançant `exclude-newer`.

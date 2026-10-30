@@ -22,6 +22,9 @@ dev = [
 [tool.uv]
 # Aucune version publiée depuis moins de deux semaines (SPEC section 14).
 exclude-newer = "2026-10-17T00:00:00Z"
+# Dépendances transitives de pip-audit (dev uniquement) : correctifs de sécurité
+# relus et acceptés malgré l'âge < 2 semaines (voir docs/dependencies.md).
+exclude-newer-package = { certifi = "2026-10-19T00:00:00Z", filelock = "2026-10-18T00:00:00Z" }
 
 [tool.vercel]
 entrypoint = "config.wsgi:application"

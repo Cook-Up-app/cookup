@@ -1,0 +1,32 @@
+:root {
+  --color-bg: #faf6ec;
+  --color-text: #2b2a26;
+  --color-accent: #4f7a3a;
+  --space: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1d1c18;
+    --color-text: #f1ecdd;
+    --color-accent: #8fbf74;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+h1 {
+  color: var(--color-accent);
+}

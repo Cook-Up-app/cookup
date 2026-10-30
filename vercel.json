@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["cdg1"],
+  "functions": { "config/wsgi.py": { "maxDuration": 60 } },
+  "crons": [{ "path": "/internal/cron/daily", "schedule": "0 5 * * *" }]
+}

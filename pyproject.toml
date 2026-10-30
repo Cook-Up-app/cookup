@@ -1,0 +1,46 @@
+[project]
+name = "cookup"
+version = "0.1.0"
+description = "Planificateur de menus et liste de courses (Django / Vercel / Supabase)"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "django>=6.1,<6.2",
+    "psycopg[binary]>=3.3,<4",
+    "whitenoise>=6.12,<7",
+    "dj-database-url>=3.1,<4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.14",
+    "ruff>=0.17",
+    "pip-audit>=2.10",
+]
+
+[tool.uv]
+# Aucune version publiée depuis moins de deux semaines (SPEC section 14).
+exclude-newer = "2026-10-17T00:00:00Z"
+
+[tool.vercel]
+entrypoint = "config.wsgi:application"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.local"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["migrations", "staticfiles"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C90", "S", "SIM", "DJ"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]

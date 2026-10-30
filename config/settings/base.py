@@ -5,7 +5,7 @@ from pathlib import Path
 import dj_database_url
 from django.utils.csp import CSP
 
-from apps.core.env import env_list, env_str
+from apps.core.env import env_bool, env_list, env_required, env_str
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -50,6 +50,15 @@ TEMPLATES = [
         },
     },
 ]
+
+
+def database_url(default: str | None = None) -> str:
+    """URL de la base ; `USE_DIRECT_DATABASE=1` choisit la connexion directe (migrations)."""
+    if env_bool("USE_DIRECT_DATABASE"):
+        return env_required("DATABASE_DIRECT_URL")
+    if default is None:
+        return env_required("DATABASE_URL")
+    return env_str("DATABASE_URL", default)
 
 
 def database_config(url: str) -> dict:

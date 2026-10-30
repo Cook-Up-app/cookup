@@ -3,11 +3,11 @@
 from apps.core.env import env_required
 
 from .base import *  # noqa: F403
-from .base import database_config
+from .base import database_config, database_url
 
 DEBUG = False
 SECRET_KEY = env_required("SECRET_KEY")
-DATABASES = {"default": database_config(env_required("DATABASE_URL"))}
+DATABASES = {"default": database_config(database_url())}
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},

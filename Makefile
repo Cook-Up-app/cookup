@@ -1,6 +1,5 @@
-# Les variables de .env (format KEY=valeur, sans guillemets) sont exportées.
--include .env
-export
+# `uv --env-file` charge .env (guillemets acceptés) ; sans .env, les variables du shell s'appliquent.
+RUN = uv run $(if $(wildcard .env),--env-file .env,)
 
 .PHONY: dev test lint format migrate db-up db-down audit check
 
@@ -11,10 +10,10 @@ db-down:
 	docker compose down
 
 dev: db-up
-	uv run python manage.py runserver
+	$(RUN) python manage.py runserver
 
 test: db-up
-	uv run pytest
+	$(RUN) pytest
 
 lint:
 	uv run ruff check .
@@ -24,12 +23,12 @@ format:
 	uv run ruff check --fix .
 	uv run ruff format .
 
-# Migrations via la connexion directe (ou pooler en mode session), jamais le pooler transactionnel.
+# Migrations via DATABASE_DIRECT_URL (connexion directe ou pooler session), jamais le pooler transactionnel.
 migrate:
-	DATABASE_URL=$${DATABASE_DIRECT_URL:-$$DATABASE_URL} uv run python manage.py migrate
+	USE_DIRECT_DATABASE=1 $(RUN) python manage.py migrate
 
 audit:
 	uv run pip-audit
 
 check: lint test
-	uv run python manage.py makemigrations --check --dry-run
+	$(RUN) python manage.py makemigrations --check --dry-run

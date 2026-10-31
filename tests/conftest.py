@@ -60,3 +60,12 @@ def recent_reauth(monkeypatch):
         "allauth.account.internal.flows.reauthentication.did_recently_reauthenticate",
         lambda request: True,
     )
+
+
+def seed_catalog() -> None:
+    """Ingrédients et recettes de départ, sans la renormalisation (inutile sur une base vide)."""
+    from apps.catalog.seeding import seed_ingredients
+    from apps.catalog.starter import load_starter_recipes
+
+    seed_ingredients()
+    load_starter_recipes()

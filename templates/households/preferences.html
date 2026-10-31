@@ -2,7 +2,7 @@
 {% load ui %}
 {% block title %}Préférences{% endblock %}
 {% block content %}
-  <header class="page-header"><div><h1>Préférences du foyer</h1><p>Ces réglages guident la génération des menus.</p></div></header>
+  <header class="page-header"><div><h1>Préférences du foyer</h1><p>Ces réglages guident la génération des menus.</p></div><a class="btn btn-ghost" href="{% url 'onboarding:start' %}">{% icon "sliders" %}<span class="btn-label">Refaire l'assistant</span></a></header>
   <form method="post" class="stack-lg form-card">
     {% csrf_token %}
     {{ form.non_field_errors }}

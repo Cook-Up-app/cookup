@@ -2,6 +2,17 @@
 
 Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`), PostgreSQL Supabase via le pooler transactionnel. Voir `SPEC.md` sections 3 à 5.
 
+## État après la refonte front-end
+
+- **Design system** : `tokens.css` (couleurs, espacements, contrastes AA vérifiés par test), `base.css`, `layout.css` (coque), `components.css`, `print.css`. Aucun style ni script en ligne (CSP stricte). Icônes : sprite SVG (`components/icons.html`, balise `{% icon %}`).
+- **Coque** : `_document.html` → `base.html` (application) / `base_auth.html` (cartes centrées) ; gabarits allauth surchargés. La navigation vient du processeur de contexte `apps.core.context.ui`.
+- **Formulaires** : `FORM_RENDERER=TemplatesSetting`, surcharges dans `templates/django/forms/` (pastilles pour cases et radios).
+- **Assistant d'accueil** (`apps/onboarding`) : registre d'étapes (`@step`), une question par écran, enregistrement immédiat, passer/retour/quitter. Redirection seulement pour un foyer neuf (`HouseholdSettings.onboarded_at`).
+- **Accueil** : `apps/planner/dashboard.py` (menu du jour, demain, courses).
+- **Hors ligne** : le JavaScript de M6 est inchangé, relié par des attributs `data-*`.
+- **Dev** : `seed_demo` et `/dev/connexion/<profil>` (`DEV_LOGIN`, vrai seulement en local).
+- Écarts : pas de HTMX ; service worker non testé dans le navigateur intégré.
+
 ## État après M0
 
 - `config/settings/{base,local,production}.py` : réglages communs, développement, production (HSTS, cookies `__Host-`, SSL redirect, WhiteNoise manifest).

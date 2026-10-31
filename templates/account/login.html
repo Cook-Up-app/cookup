@@ -13,10 +13,9 @@
   {% if PASSKEY_LOGIN_ENABLED %}
     <hr>
     <div class="button-stack">
-      <button type="submit" form="mfa_login" id="passkey_login" class="btn btn-block">{% icon "shield" %}Se connecter avec une clé d'accès</button>
+      <button type="submit" form="mfa_login" id="passkey_login" class="btn btn-block">{% icon "shield" %}<span>Utiliser une clé d'accès</span></button>
     </div>
   {% endif %}
-  <p class="mt"><a href="{% url 'account_reset_password' %}">Mot de passe oublié ?</a></p>
 {% endblock content %}
 {% block extra_body %}
   {{ block.super }}

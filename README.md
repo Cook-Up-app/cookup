@@ -30,6 +30,17 @@ USE_DIRECT_DATABASE=1 uv run --env-file .env python manage.py createsuperuser
 
 Connectez-vous sur `/connexion` et activez une passkey ou un TOTP sur `/compte/securite` (obligatoire pour les administrateurs). Le foyer « Mon foyer » (4 portions) est créé automatiquement. Inviter d'autres personnes est facultatif : le lien d'invitation est affiché une seule fois et n'expire pas. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
 
+## Refonte du front-end
+
+Thème « crème et vert herbe » en CSS maison (`static/css/`, jetons dans `tokens.css`), clair et sombre automatiques. Navigation : barre du bas sur téléphone, menu latéral dès 1024 px (définie une seule fois dans `apps/core/navigation.py`). À la création d'un foyer, un assistant (`/bienvenue/`) pose les questions une par une ; il se relance depuis Préférences (« Refaire l'assistant »).
+
+```bash
+make db-up && make migrate   # migration 0006 : date de fin de l'assistant
+make dev
+```
+
+Pour voir l'interface avec des données : `uv run python manage.py seed_demo` (DEBUG uniquement), puis `/dev/connexion/proprietaire` (route de développement, absente en production). Les photos des sources s'affichent grâce à `SOURCES_IMAGE_DOMAINS` (CSP `img-src`).
+
 ## Mise à jour après M6
 
 ```bash

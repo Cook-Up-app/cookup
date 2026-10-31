@@ -26,6 +26,10 @@ Dépendances : `uv add <paquet>` (jamais pip). Réglages : `config.settings.loca
 - **Assouplissements décidés après M1** (priment sur SPEC.md sections 2, 5 et 13-Q19) : usage seul possible, foyer créé automatiquement (4 portions), invitations facultatives ; MFA obligatoire seulement pour les administrateurs (staff ou propriétaire de foyer), facultative pour les simples membres ; aucune révocation d'accès liée au temps (session d'un an prolongée à chaque requête, invitations sans expiration, `INVITATION_TTL_DAYS=0`). Restent en vigueur : usage unique des invitations, révocation manuelle, réauthentification pour les actions sensibles.
 - Les autres questions appliquent leur défaut (foyer 2–6 personnes ; déjeuner + dîner ; pas de suivi nutritionnel ; HTMX + Alpine ; Resend ou Brevo ; sauvegarde hebdomadaire ; MFA obligatoire ; le propriétaire gère convives, allergies, invitations).
 
+## Front-end (après refonte)
+
+CSS maison dans `static/css/`, aucun style ou script en ligne. Navigation définie une seule fois dans `apps/core/navigation.py`. Nouveau formulaire : champs rendus par `as_field_group`. Étape d'assistant : décorateur `@step` dans `apps/onboarding/steps.py`. `seed_demo` et `/dev/connexion/<profil>` sont réservés au local.
+
 ## Règles de la section 14
 
 - Code en anglais, textes d'interface en français via `gettext`, documentation en français. Python typé.

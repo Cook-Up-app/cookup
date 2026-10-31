@@ -13,6 +13,7 @@ make format     # corrige lint et format
 make migrate    # migrations via DATABASE_DIRECT_URL (jamais le pooler transactionnel)
 make audit      # pip-audit
 make check      # lint + tests + makemigrations --check
+node --test tests/js/*.test.js   # logique JavaScript (aussi lancée par pytest si node est présent)
 ```
 
 Dépendances : `uv add <paquet>` (jamais pip). Réglages : `config.settings.local` (défaut de `manage.py`), `config.settings.production` (défaut de `wsgi.py`).

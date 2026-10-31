@@ -1,0 +1,39 @@
+name: Sauvegarde hebdomadaire de la base
+
+# Le plan Free de Supabase n'inclut aucune sauvegarde : ce workflow produit un export chiffré,
+# conservé comme artefact GitHub (90 jours). Voir docs/operations.md pour la restauration.
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exporter et chiffrer
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          # Client PostgreSQL 17 (celui de Supabase) via Docker : celui d'Ubuntu est plus ancien.
+          PG_DUMP: docker run --rm -i postgres:17-alpine pg_dump
+        run: |
+          if [ -z "$BACKUP_DATABASE_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Secrets BACKUP_DATABASE_URL / BACKUP_PASSPHRASE absents : sauvegarde ignorée."
+            echo "SKIPPED=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          scripts/backup.sh
+      - name: Conserver la sauvegarde
+        if: env.SKIPPED != '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauvegarde-${{ github.run_id }}
+          path: backup.dump.enc
+          retention-days: 90
+          if-no-files-found: error

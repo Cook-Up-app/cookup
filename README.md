@@ -30,6 +30,14 @@ USE_DIRECT_DATABASE=1 uv run --env-file .env python manage.py createsuperuser
 
 Connectez-vous sur `/connexion` et activez une passkey ou un TOTP sur `/compte/securite` (obligatoire pour les administrateurs). Le foyer « Mon foyer » (4 portions) est créé automatiquement. Inviter d'autres personnes est facultatif : le lien d'invitation est affiché une seule fois et n'expire pas. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
 
+## Mise à jour après M6
+
+```bash
+make migrate   # ajoute l'horodatage des cases cochées (synchronisation hors ligne)
+```
+
+Installer l'application : sur téléphone, « Ajouter à l'écran d'accueil ». La liste de courses et les recettes ouvertes fonctionnent ensuite sans réseau. Secrets GitHub facultatifs pour la sauvegarde : `BACKUP_DATABASE_URL`, `BACKUP_PASSPHRASE` (voir `docs/operations.md`).
+
 ## Mise à jour après M4
 
 ```bash

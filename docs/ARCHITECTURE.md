@@ -9,6 +9,20 @@ Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`),
 - Sécurité : CSP native Django 6.1 (`SECURE_CSP`, sans `unsafe-inline`/`unsafe-eval`), `X-Frame-Options`, `Referrer-Policy`, `nosniff`.
 - `vercel.json` : région `cdg1`, `maxDuration` 60 s (Hobby : 300 s max, vérifié), cron quotidien 05:00.
 
+## État après M6
+
+- **PWA** : `/manifest.webmanifest`, icônes (script `scripts/make_icons.py`), et un service worker servi à la racine par une vue Django (`/sw.js`, `Service-Worker-Allowed: /`, sans cache) : un fichier sous `/static/` aurait une portée limitée à `/static/`, et le dossier statique n'est de toute façon pas dans la fonction Vercel. Les caches portent la version du déploiement (`VERCEL_GIT_COMMIT_SHA`).
+- **Stratégies de cache** : enveloppe de l'application en cache d'abord ; pages de données (courses, menus, recettes ouvertes) réseau d'abord avec repli sur le cache ; jamais en cache les POST, la connexion, le compte, l'administration et les routes internes.
+- **Synchronisation des courses** : cocher envoie « mettre à l'état X » (idempotent) et non « inverser » ; chaque geste est horodaté côté client, enregistré dans IndexedDB (file d'attente), appliqué tout de suite à l'écran, puis rejoué par lot vers `/courses/<menu>/synchroniser`. Le serveur applique ligne par ligne selon l'heure du geste (**le dernier gagne**, horloge bornée à +5 min), répond par un statut par opération et l'état de la liste. Déclencheurs du rejeu : retour du réseau, ouverture de la page, retour au premier plan, Background Sync quand il existe, essais espacés (2 s, 4 s… 5 min). Les ajouts hors ligne utilisent un identifiant créé côté client (pas de doublon au rejeu).
+- **Déconnexion** : en ligne, la file est d'abord synchronisée, puis caches et IndexedDB sont vidés. Hors ligne, les données locales sont effacées et la fermeture de la session serveur est faite au retour du réseau (limite : la session reste valide jusque-là).
+- **Mode cuisine** (`/recettes/<id>/cuisine`) : étapes en grand texte une à une, minuteurs proposés depuis les durées de l'étape, écran maintenu allumé (Wake Lock) ; sans JavaScript, simple liste lisible.
+- **Export** : texte copié, partage système, impression (feuille de style dédiée), construits depuis la page donc disponibles hors ligne.
+- **Apprentissage des goûts** : les notes du foyer deviennent des goûts d'ingrédients (écart à la note habituelle, lissé et borné de -2 à +2) pour les convives sans goût saisi ; un goût saisi à la main prime toujours. Favoris et exclusions restent des critères directs.
+- **Exploitation** : tâche quotidienne vérifiable via `/sante` (`keepalive`), purge des invitations et sessions expirées, sauvegarde hebdomadaire chiffrée (`docs/operations.md`).
+- **Vérifié en navigateur réel** (serveur local, base de test) : cases cochées appliquées à l'écran puis synchronisées, coupure du serveur avec deux cases cochées (2 opérations en file), retour du serveur et rejeu automatique (file vide, état serveur correct) ; mode cuisine (étapes, minuteur « 1 h 15 »). Ce test a révélé et fait corriger un défaut : la synchronisation attendait `serviceWorker.ready` et ne partait jamais si le service worker était indisponible.
+- **Non vérifié** : le service worker lui-même (le panneau navigateur utilisé refuse l'enregistrement : la requête `/sw.js` n'est jamais émise). Sa logique est testée sous node avec des simulations de `caches` et `fetch` (13 cas) ; l'installation réelle, le hors ligne complet et iOS restent à essayer sur un appareil.
+- **Écarts** : pas d'HTMX ; JavaScript total d'environ 24 Ko avant compression (budget 50 Ko) ; Background Sync absent d'iOS/Safari (les autres déclencheurs prennent le relais).
+
 ## État après M5
 
 - **Mode Cookeo** : un créneau est « Cookeo » ou « Classique » (mode mixte : part exacte tirée de façon reproductible) ; une recette Cookeo exige l'équipement du foyer et ne peut remplir qu'un créneau Cookeo, et réciproquement. Un seul plat principal par créneau, donc une seule préparation Cookeo à la fois.

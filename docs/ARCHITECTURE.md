@@ -9,6 +9,13 @@ Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`),
 - Sécurité : CSP native Django 6.1 (`SECURE_CSP`, sans `unsafe-inline`/`unsafe-eval`), `X-Frame-Options`, `Referrer-Policy`, `nosniff`.
 - `vercel.json` : région `cdg1`, `maxDuration` 60 s (Hobby : 300 s max, vérifié), cron quotidien 05:00.
 
+## État après M2
+
+- **Catalogue** (`apps/catalog`, partagé entre foyers) : `Ingredient` (nom canonique, rayon, allergènes, `allergens_reviewed`), `Recipe` (empreinte unique, `search_text` replié sans accents + `search_vector` français, index GIN et trigrammes), `RecipeIngredient` (texte brut toujours conservé), `RecipeEquipment`, `RecipeFeedback` (par foyer). Les ingrédients et recettes de départ se chargent par `make seed` (`seed_catalog`, idempotent).
+- **Normalisation** (`text`, `normalization`, `matching`, fonctions pures) : quantité, unité (table unique `core.units`), nom ; rattachement exact, puis par inclusion (marqué « à vérifier » si un mot inconnu reste), puis similarité `pg_trgm`. Rien n'est deviné : l'inconnu garde son texte brut et un drapeau.
+- **Sources** (`apps/sources`) : contrats `Searchable`/`Fetchable`/`Parsable`, registre, `PoliteFetcher` (liste blanche, SSRF avec contrôle de l'adresse réellement jointe, robots.txt avec jokers, débit en base, taille et durée plafonnées, redirections revalidées), `UrlImportSource`, `MarmitonSource`, file `ImportJob`, tâche hebdomadaire.
+- **Écarts** : pas d'extension `unaccent` (repliement fait en Python, de façon identique à l'index et à la requête) ; pas de `loaddata` mais une commande de chargement.
+
 ## État après M1
 
 - **Authentification** : `accounts.User` (UUID, e-mail unique insensible à la casse), Argon2id, allauth (sessions, TOTP, passkeys, codes de récupération, réauthentification). Inscription fermée (`ClosedAccountAdapter`).

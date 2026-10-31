@@ -1,5 +1,7 @@
 # Sources de recettes : vérification préalable (SPEC section 14)
 
+> **Décision du propriétaire (2026-10-31)** : conditions d'utilisation de Marmiton lues, aucune restriction pour ce projet ; seuls les `robots.txt` font foi. Import le plus automatisé possible dans leurs limites, une fois par semaine. Les constats ci-dessous restent la base technique ; la section « Mise en œuvre M2 » en fin de document décrit ce qui a été construit.
+
 Vérification du 2026-10-31, avec le `User-Agent` `CookupRecipeCheck/0.1 (… contact: millotflorentin@gmail.com)`, 2 s entre requêtes, une seule page de recette par site. Ce n'est pas un avis juridique.
 
 ## marmiton.org
@@ -28,3 +30,12 @@ Vérification du 2026-10-31, avec le `User-Agent` `CookupRecipeCheck/0.1 (… co
 
 ## Garde-fous communs
 `User-Agent` honnête avec contact, 1 requête par seconde maximum, respect de `robots.txt` et des en-têtes de cache, aucun contournement de protection anti-robots, jamais de scraping pendant la génération d'un menu, un import = une recette = une requête.
+
+## Mise en œuvre M2 (automatisation dans les limites de robots.txt)
+
+- **Découverte** : chaque semaine, 4 recherches thématiques (`apps/sources/themes.py`, rotation sur 60 thèmes dont des recettes Cookeo). Seule la **première page** de `/recettes/recherche.aspx?aqt=<thème>` est demandée : c'est la seule forme que robots.txt autorise (ni `page=`, ni `start=`, ni `type=`).
+- **Import** : une recette = une requête, 1 requête par seconde maximum (état partagé en base, donc valable entre invocations serverless), `User-Agent` honnête avec contact, arrêt et pause de 6 h ou du `Retry-After` sur 429/503, aucune requête si robots.txt est injoignable (RFC 9309).
+- **Filtre qualité** : les recettes notées sous 3,8 / 5 par la source ne sont pas importées ; les doublons sont détectés par empreinte.
+- **Cadence** : cron Vercel le lundi 04:00 (un lot d'environ 40 s) ; workflow GitHub facultatif le lundi 05:00 pour vider la file par lots successifs. Quota : 40 nouvelles recettes par semaine (`SOURCE_IMPORT_WEEKLY_QUOTA`).
+- **Activation** : `SOURCE_MARMITON_ENABLED=true` et `SOURCES_CONTACT` renseignés dans Vercel. Désactivable à tout moment.
+- **Moulinex** : aucun adaptateur en M2. Les conditions du Groupe SEB (lues plus haut) restent un point d'attention ; décision en M5 avec le propriétaire.

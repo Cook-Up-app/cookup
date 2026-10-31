@@ -11,6 +11,9 @@ Toutes épinglées dans `uv.lock`, publiées avant le 2026-10-17 (`exclude-newer
 | `django-allauth[mfa]` 65.20 | Connexion, TOTP, codes de récupération, passkeys, réauthentification, limitation de débit | M1 |
 | `argon2-cffi` | Hachage Argon2id des mots de passe | M1 |
 | `fido2`, `qrcode`, `cryptography` (transitives de l'extra `mfa`) | WebAuthn, QR code TOTP, chiffrement des secrets | M1 |
+| `recipe-scrapers` 15.12 | Extraction JSON-LD des recettes (marmiton.org pris en charge) ; la 15.13 (18 octobre) est trop récente | M2 |
+| `protego` | Lecture de robots.txt avec jokers (`*`, `$`), que `urllib.robotparser` ne gère pas | M2 |
+| `nh3` | Nettoyage HTML du contenu importé avant stockage | M2 |
 | `pytest`, `pytest-django` (dev) | Tests | M0 |
 | `ruff` (dev) | Lint, format, règles de sécurité `S` | M0 |
 | `pip-audit` (dev) | Audit des vulnérabilités | M0 |

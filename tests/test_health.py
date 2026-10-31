@@ -25,3 +25,8 @@ def test_health_degraded_when_database_down(client, monkeypatch):
 
 def test_health_rejects_post(client):
     assert client.post(reverse("core:health")).status_code == 405
+
+
+@pytest.mark.django_db
+def test_health_accepts_head(client):
+    assert client.head(reverse("core:health")).status_code == 200

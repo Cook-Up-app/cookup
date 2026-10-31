@@ -4,19 +4,19 @@ from django.conf import settings
 from django.db import Error as DatabaseError
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_safe
 
 from . import services
 
 BEARER_PREFIX = "Bearer "
 
 
-@require_GET
+@require_safe
 def home(request: HttpRequest) -> HttpResponse:
     return render(request, "home.html")
 
 
-@require_GET
+@require_safe
 def health(request: HttpRequest) -> JsonResponse:
     """État de l'application, sans donnée sensible."""
     try:

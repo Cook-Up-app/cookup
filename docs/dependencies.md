@@ -8,6 +8,9 @@ Toutes épinglées dans `uv.lock`, publiées avant le 2026-10-17 (`exclude-newer
 | `psycopg[binary]` | Pilote PostgreSQL 3 | M0 |
 | `whitenoise` | Fichiers statiques (local) et compression | M0 |
 | `dj-database-url` | Lecture de `DATABASE_URL` | M0 |
+| `django-allauth[mfa]` 65.20 | Connexion, TOTP, codes de récupération, passkeys, réauthentification, limitation de débit | M1 |
+| `argon2-cffi` | Hachage Argon2id des mots de passe | M1 |
+| `fido2`, `qrcode`, `cryptography` (transitives de l'extra `mfa`) | WebAuthn, QR code TOTP, chiffrement des secrets | M1 |
 | `pytest`, `pytest-django` (dev) | Tests | M0 |
 | `ruff` (dev) | Lint, format, règles de sécurité `S` | M0 |
 | `pip-audit` (dev) | Audit des vulnérabilités | M0 |

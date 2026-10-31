@@ -1,7 +1,13 @@
 import importlib
 
 import pytest
+from allauth.mfa.models import Authenticator
 from django.test import override_settings
+
+from apps.accounts.models import User
+from apps.households import services
+
+PASSWORD = "correct-horse-battery-staple"
 
 
 @pytest.fixture
@@ -18,3 +24,39 @@ def production_settings(monkeypatch):
     }
     with override_settings(ALLOWED_HOSTS=["testserver"], **values):
         yield module
+
+
+def make_user(email: str, *, mfa: bool = True, name: str = "") -> User:
+    user = User.objects.create_user(email, PASSWORD, display_name=name or email.split("@")[0])
+    if mfa:
+        Authenticator.objects.create(user=user, type=Authenticator.Type.TOTP, data={"secret": "x"})
+    return user
+
+
+@pytest.fixture
+def owner(db):
+    user = make_user("owner@example.com")
+    services.create_household(user, "Foyer A")
+    return user
+
+
+@pytest.fixture
+def other_owner(db):
+    user = make_user("other@example.com")
+    services.create_household(user, "Foyer B")
+    return user
+
+
+@pytest.fixture
+def owner_client(client, owner):
+    client.force_login(owner)
+    return client
+
+
+@pytest.fixture
+def recent_reauth(monkeypatch):
+    """Simule une réauthentification récente (allauth la lit dans la session)."""
+    monkeypatch.setattr(
+        "allauth.account.internal.flows.reauthentication.did_recently_reauthenticate",
+        lambda request: True,
+    )

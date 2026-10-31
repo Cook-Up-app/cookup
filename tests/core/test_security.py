@@ -6,7 +6,7 @@ HTTPS = {"secure": True}
 
 @pytest.fixture
 def response(client, production_settings):
-    return client.get(reverse("core:home"), **HTTPS)
+    return client.get(reverse("account_login"), **HTTPS)
 
 
 def test_hsts_one_year_with_subdomains(response):
@@ -30,7 +30,7 @@ def test_browser_hardening_headers(response):
 
 
 def test_http_is_redirected_to_https(client, production_settings):
-    response = client.get(reverse("core:home"))
+    response = client.get(reverse("account_login"))
 
     assert response.status_code == 301
     assert response["Location"].startswith("https://")
@@ -82,6 +82,6 @@ def test_wsgi_entrypoint_forces_production_settings(monkeypatch):
 
 
 def test_home_renders_without_collected_static_files(client, production_settings):
-    response = client.get(reverse("core:home"), secure=True)
+    response = client.get(reverse("account_login"), secure=True)
 
     assert response.status_code == 200

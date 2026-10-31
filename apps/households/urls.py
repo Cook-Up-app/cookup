@@ -17,5 +17,7 @@ urlpatterns = [
     path("convives/<uuid:pk>/supprimer", views.diner_delete, name="diner-delete"),
     path("convives/<uuid:pk>/restrictions/", views.restriction_add, name="restriction-add"),
     path("restrictions/<uuid:pk>/supprimer", views.restriction_delete, name="restriction-delete"),
+    path("convives/<uuid:pk>/gouts", views.diner_tastes, name="diner-tastes"),
+    path("preferences/", views.preferences, name="preferences"),
     path("equipements/", views.equipment, name="equipment"),
 ]

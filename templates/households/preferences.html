@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Préférences{% endblock %}
+{% block content %}
+  <h1>Préférences du foyer</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if request.membership.is_owner %}<button type="submit">Enregistrer</button>{% endif %}
+  </form>
+{% endblock %}

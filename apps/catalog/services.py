@@ -206,3 +206,31 @@ def recipe_allergens(recipe: Recipe) -> tuple[list[str], bool]:
         if ingredient is not None:
             found.update(ingredient.allergens)
     return sorted(found), uncertain
+
+
+def renormalize_recipes() -> int:
+    """Relance la normalisation de toutes les lignes ; retourne le nombre de recettes traitées.
+
+    Le texte brut est la source : rien d'autre n'est lu, donc l'opération est rejouable.
+    """
+    index = load_index()
+    names = dict(Ingredient.objects.values_list("id", "name"))
+    count = 0
+    for recipe in Recipe.objects.prefetch_related("ingredients").iterator(chunk_size=200):
+        rows = list(recipe.ingredients.all())
+        for row in rows:
+            line = normalize_line(row.raw_text, index)
+            row.ingredient_id = line.ingredient_id
+            row.needs_review = line.needs_review
+        RecipeIngredient.objects.bulk_update(rows, ["ingredient", "needs_review"])
+        recipe.needs_review = any(r.needs_review or r.ingredient_id is None for r in rows)
+        words = [
+            recipe.title,
+            *recipe.tags,
+            *(names.get(r.ingredient_id, r.raw_text) for r in rows),
+        ]
+        recipe.search_text = fold(" ".join(words))
+        recipe.save(update_fields=["needs_review", "search_text"])
+        count += 1
+    Recipe.objects.update(search_vector=SearchVector("search_text", config=SEARCH_LANGUAGE))
+    return count

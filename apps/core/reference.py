@@ -68,6 +68,16 @@ class MealType(models.TextChoices):
     DESSERT = "dessert", _("Dessert")
 
 
+# Ordre chronologique des repas d'une journée (le dessert suit le repas principal).
+MEAL_ORDER = (
+    MealType.BREAKFAST,
+    MealType.LUNCH,
+    MealType.SNACK,
+    MealType.DINNER,
+    MealType.DESSERT,
+)
+
+
 class RecipeSource(models.TextChoices):
     """Clés des sources de recettes (voir `apps.sources`)."""
 

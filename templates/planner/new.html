@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Nouveau menu{% endblock %}
+{% block content %}
+  <h1>Nouveau menu</h1>
+  <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
+  <form method="post" action="{% url 'planner:generate' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Générer le menu</button>
+  </form>
+{% endblock %}

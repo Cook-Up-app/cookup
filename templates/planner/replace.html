@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Remplacer un repas{% endblock %}
+{% block content %}
+  <h1>Remplacer : {{ slot.get_meal_type_display }} du {{ slot.day|date:"l j F" }}</h1>
+  <ul class="list">
+    {% for recipe in options %}
+      <li>
+        <a href="{% url 'catalog:detail' recipe.pk %}">{{ recipe.title }}</a>
+        {% if recipe.total_minutes %}({{ recipe.total_minutes }} min){% endif %}
+        <form method="post" action="{% url 'planner:replace' slot.plan_id slot.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="recipe" value="{{ recipe.pk }}">
+          <button type="submit">Choisir</button>
+        </form>
+      </li>
+    {% empty %}
+      <li>Aucune alternative ne respecte les contraintes de ce repas.</li>
+    {% endfor %}
+  </ul>
+  <p><a href="{% url 'planner:detail' slot.plan_id %}">Retour au menu</a></p>
+{% endblock %}

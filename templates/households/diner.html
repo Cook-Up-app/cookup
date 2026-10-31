@@ -3,6 +3,7 @@
 {% block content %}
   <h1>{{ diner.first_name }}</h1>
   <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
+  <p><a href="{% url 'households:diner-tastes' diner.pk %}">Goûts</a></p>
   <h2>Allergies, intolérances et aliments évités</h2>
   <ul class="list">
     {% for restriction in diner.restrictions.all %}

@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "apps.households",
     "apps.catalog",
     "apps.sources",
+    "apps.planner",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

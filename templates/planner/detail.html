@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Menu{% endblock %}
+{% block content %}
+  <h1>Menu du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }}</h1>
+  <form method="post" action="{% url 'planner:regenerate' plan.pk %}">
+    {% csrf_token %}
+    <button type="submit">Régénérer ce qui n'est pas verrouillé</button>
+  </form>
+  {% for day, slots in days %}
+    <section>
+      <h2>{{ day|date:"l j F" }}</h2>
+      <ul class="list">
+        {% for slot in slots %}
+          <li>
+            <strong>{{ slot.get_meal_type_display }}</strong> :
+            {% if slot.out_of_home %}
+              hors maison
+            {% elif slot.recipe %}
+              <a href="{% url 'catalog:detail' slot.recipe.pk %}">{{ slot.recipe.title }}</a>
+              {% if slot.leftover %}(restes){% endif %}
+              {% if slot.locked %}🔒{% endif %}
+              <br><small>{{ slot.explanation }}</small>
+            {% endif %}
+            <form method="post" action="{% url 'planner:lock' plan.pk slot.pk %}">
+              {% csrf_token %}<button type="submit">{% if slot.locked %}Déverrouiller{% else %}Verrouiller{% endif %}</button>
+            </form>
+            <form method="post" action="{% url 'planner:replace' plan.pk slot.pk %}">
+              {% csrf_token %}<button type="submit">Remplacer</button>
+            </form>
+            <form method="post" action="{% url 'planner:out-of-home' plan.pk slot.pk %}">
+              {% csrf_token %}<button type="submit">{% if slot.out_of_home %}Remettre à la maison{% else %}Hors maison{% endif %}</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+{% endblock %}

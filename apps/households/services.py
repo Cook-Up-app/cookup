@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .exceptions import AccountAlreadyExists, InvitationInvalid, LastOwnerError
-from .models import Household, HouseholdEquipment, Invitation, Membership
+from .models import Household, HouseholdEquipment, Invitation, Membership, TastePreference
 
 TOKEN_BYTES = 32
 
@@ -123,3 +123,16 @@ def set_equipment(household: Household, equipment) -> None:
     HouseholdEquipment.objects.for_household(household).exclude(equipment__in=equipment).delete()
     for item in equipment:
         HouseholdEquipment.objects.get_or_create(household=household, equipment=item)
+
+
+LIKE_SCORE, DISLIKE_SCORE = 2, -2
+
+
+@transaction.atomic
+def set_tastes(diner, likes, dislikes, offered_ids) -> None:
+    """Remplace les goûts du convive sur les ingrédients proposés ; les autres sont conservés."""
+    TastePreference.objects.filter(diner=diner, ingredient_id__in=offered_ids).delete()
+    TastePreference.objects.bulk_create(
+        [TastePreference(diner=diner, ingredient=i, score=LIKE_SCORE) for i in likes]
+        + [TastePreference(diner=diner, ingredient=i, score=DISLIKE_SCORE) for i in dislikes]
+    )

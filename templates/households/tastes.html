@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Goûts de {{ diner.first_name }}{% endblock %}
+{% block content %}
+  <h1>Goûts de {{ diner.first_name }}</h1>
+  <p>Cochez ce qui est aimé ou détesté ; le reste reste neutre.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if request.membership.is_owner %}<button type="submit">Enregistrer</button>{% endif %}
+  </form>
+  <p><a href="{% url 'households:diner' diner.pk %}">Retour</a></p>
+{% endblock %}

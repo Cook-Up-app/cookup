@@ -7,6 +7,7 @@ from apps.core.reference import Aisle
 from .ingredient_catalog import AISLES, ALLERGENS, CATALOG
 from .models import Ingredient
 from .text import stem_key
+from .traits import diet_flags, protein_group
 
 PARTS = 6
 
@@ -34,6 +35,8 @@ def seed_ingredients() -> int:
     entries = parse_catalog()
     for entry in entries:
         name = entry.pop("name")
+        entry["diet_flags"] = diet_flags(name, entry["aisle"], entry["allergens"])
+        entry["protein"] = protein_group(name, entry["allergens"])
         Ingredient.objects.update_or_create(
             normalized_name=stem_key(name), defaults={"name": name, **entry}
         )

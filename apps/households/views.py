@@ -17,8 +17,19 @@ from .forms import (
     HouseholdForm,
     InvitationForm,
     RestrictionForm,
+    SettingsForm,
+    TasteForm,
+    taste_ingredients,
 )
-from .models import Diner, DinerRestriction, HouseholdEquipment, Invitation, Membership
+from .models import (
+    Diner,
+    DinerRestriction,
+    HouseholdEquipment,
+    HouseholdSettings,
+    Invitation,
+    Membership,
+    TastePreference,
+)
 from .permissions import household_required, owner_required
 
 AUTH_BACKEND = "allauth.account.auth_backends.AuthenticationBackend"
@@ -204,3 +215,35 @@ def accept_invitation(request: HttpRequest, token: str) -> HttpResponse:
     return render(
         request, "households/accept_invitation.html", {"form": form, "invitation": invitation}
     )
+
+
+@require_http_methods(["GET", "POST"])
+@household_required
+def preferences(request: HttpRequest) -> HttpResponse:
+    settings, _ = HouseholdSettings.objects.get_or_create(household=request.household)
+    form = SettingsForm(request.POST or None, instance=settings)
+    if request.method == "POST" and request.membership.is_owner and form.is_valid():
+        form.save()
+        return redirect("households:preferences")
+    return render(request, "households/preferences.html", {"form": form})
+
+
+@require_http_methods(["GET", "POST"])
+@household_required
+def diner_tastes(request: HttpRequest, pk) -> HttpResponse:
+    diner = get_object_or_404(Diner.objects.for_household(request.household), pk=pk)
+    current = dict(
+        TastePreference.objects.filter(diner=diner).values_list("ingredient_id", "score")
+    )
+    initial = {
+        "likes": [i for i, s in current.items() if s > 0],
+        "dislikes": [i for i, s in current.items() if s < 0],
+    }
+    form = TasteForm(request.POST or None, initial=initial)
+    if request.method == "POST" and request.membership.is_owner and form.is_valid():
+        offered = [i.pk for i in taste_ingredients()]
+        services.set_tastes(
+            diner, form.cleaned_data["likes"], form.cleaned_data["dislikes"], offered
+        )
+        return redirect("households:diner", pk=diner.pk)
+    return render(request, "households/tastes.html", {"diner": diner, "form": form})

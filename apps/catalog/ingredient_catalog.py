@@ -168,7 +168,10 @@ sauce tomate|S|||sauce tomate cuisinée
 olives|S|||olive;olives noires;olives vertes
 câpres|S|su
 cornichons|S|su,mu||cornichon
-bouillon|S|ce||cube de bouillon;bouillon cube;bouillon de volaille;bouillon de légumes;bouillon de bœuf;fond de veau;fond de volaille;cube de bouillon de volaille;cube de bouillon de légumes
+bouillon de légumes|S|ce||cube de bouillon de légumes;bouillon cube de légumes;bouillon légumes
+bouillon de volaille|S|ce||cube de bouillon de volaille;fond de volaille;bouillon de poule
+bouillon de bœuf|S|ce||cube de bouillon de bœuf;fond de veau;fond de bœuf;bouillon de boeuf
+bouillon|S|ce||cube de bouillon;bouillon cube
 maïs en boîte|S|||maïs doux
 farine|S|gl|s|farine de blé;farine T55;farine tamisée|0.55
 fécule de maïs|S|||maïzena;fécule;fécule de pomme de terre

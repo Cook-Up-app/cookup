@@ -22,6 +22,7 @@ dev = [
     "pytest-django>=4.14",
     "ruff>=0.17",
     "pip-audit>=2.10",
+    "pytest-cov>=6",
 ]
 
 [tool.uv]
@@ -51,6 +52,7 @@ select = ["E", "F", "W", "I", "B", "UP", "C90", "S", "SIM", "DJ"]
 max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
+"apps/planner/engine/*" = ["S311"]  # graine reproductible, pas de cryptographie
 "apps/catalog/ingredient_catalog.py" = ["E501"]
 "apps/catalog/starter_data.py" = ["E501"]
-"tests/**" = ["S101", "S105", "S106"]
+"tests/**" = ["S101", "S105", "S106", "S311"]

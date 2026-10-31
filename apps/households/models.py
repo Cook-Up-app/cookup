@@ -2,11 +2,23 @@ import uuid
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
 from apps.core.querysets import HouseholdQuerySet
-from apps.core.reference import Allergen, Diet
+from apps.core.reference import Allergen, Diet, MealType
+
+WEIGHT_CRITERIA = ("taste", "rating", "freshness", "diversity", "antiwaste", "budget", "season")
+MAX_WEIGHT = 100
+
+
+def validate_weights(value: dict) -> None:
+    """Poids du score souple : critères connus, entiers de 0 à 100."""
+    unknown = set(value) - set(WEIGHT_CRITERIA)
+    if unknown or not all(isinstance(w, int) and 0 <= w <= MAX_WEIGHT for w in value.values()):
+        raise ValidationError("Poids invalides.")
 
 
 class HouseholdManagerQuerySet(models.QuerySet):
@@ -167,3 +179,64 @@ class HouseholdEquipment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.household} : {self.equipment}"
+
+
+def default_meals() -> list[str]:
+    return ["lunch", "dinner"]
+
+
+class HouseholdSettings(models.Model):
+    """Réglages du moteur de menus ; les poids sont validés par `validate_weights`."""
+
+    class SourceMode(models.TextChoices):
+        CLASSIC = "classic", "Classique"
+        COOKEO = "cookeo", "Cookeo"
+        MIXED = "mixed", "Mixte"
+
+    household = models.OneToOneField(Household, on_delete=models.CASCADE, related_name="settings")
+    meals = ArrayField(
+        models.CharField(max_length=10, choices=MealType.choices), default=default_meals
+    )
+    max_minutes_weekday = models.PositiveSmallIntegerField("temps max en semaine (min)", default=45)
+    max_minutes_weekend = models.PositiveSmallIntegerField(
+        "temps max le week-end (min)", default=90
+    )
+    budget_level = models.PositiveSmallIntegerField(
+        "budget (1 à 3)", default=2, validators=[MinValueValidator(1), MaxValueValidator(3)]
+    )
+    leftover_weekdays = ArrayField(
+        models.PositiveSmallIntegerField(), default=list, blank=True,
+        help_text="Jours (0 = lundi … 6 = dimanche) dont le déjeuner reprend le dîner de la veille",
+    )  # fmt: skip
+    min_repeat_days = models.PositiveSmallIntegerField("répétition minimale (jours)", default=14)
+    vegetarian_per_week = models.PositiveSmallIntegerField(
+        "repas végétariens par semaine", default=2
+    )
+    source_mode = models.CharField(
+        max_length=10, choices=SourceMode.choices, default=SourceMode.CLASSIC
+    )
+    cookeo_share = models.PositiveSmallIntegerField(
+        "part de Cookeo (%)", default=50, validators=[MaxValueValidator(100)]
+    )
+    weights = models.JSONField(default=dict, blank=True, validators=[validate_weights])
+
+    def __str__(self) -> str:
+        return f"Réglages de {self.household}"
+
+
+class TastePreference(models.Model):
+    """Goût d'un convive pour un ingrédient (de -2 « déteste » à +2 « adore »)."""
+
+    diner = models.ForeignKey(Diner, on_delete=models.CASCADE, related_name="tastes")
+    ingredient = models.ForeignKey("catalog.Ingredient", on_delete=models.CASCADE, related_name="+")
+    score = models.SmallIntegerField(validators=[MinValueValidator(-2), MaxValueValidator(2)])
+
+    objects = RestrictionQuerySet.as_manager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["diner", "ingredient"], name="taste_unique"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.diner} : {self.ingredient} ({self.score})"

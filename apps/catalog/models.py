@@ -25,6 +25,9 @@ class Ingredient(models.Model):
     default_unit = models.CharField(max_length=20, blank=True)
     density_g_per_ml = models.DecimalField(max_digits=5, decimal_places=3, null=True, blank=True)
     is_staple = models.BooleanField("produit de base", default=False)
+    # Dérivés du nom et des allergènes (voir `traits`) : régimes et groupe de protéine.
+    diet_flags = ArrayField(models.CharField(max_length=10), default=list, blank=True)
+    protein = models.CharField(max_length=40, blank=True)
 
     class Meta:
         ordering = ["name"]

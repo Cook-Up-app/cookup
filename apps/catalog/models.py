@@ -28,6 +28,10 @@ class Ingredient(models.Model):
     # Dérivés du nom et des allergènes (voir `traits`) : régimes et groupe de protéine.
     diet_flags = ArrayField(models.CharField(max_length=10), default=list, blank=True)
     protein = models.CharField(max_length=40, blank=True)
+    # Conditionnement courant (boîte de 400 g…), pour des courses en unités achetables.
+    package_size = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    package_unit = models.CharField(max_length=10, blank=True)
+    package_label = models.CharField(max_length=20, blank=True)
 
     class Meta:
         ordering = ["name"]

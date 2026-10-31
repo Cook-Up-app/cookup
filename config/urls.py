@@ -14,6 +14,7 @@ urlpatterns = [
     # Placé avant allauth pour être résolu en premier (même chemin, donc même reverse).
     path("compte/password/reset/", password_reset_disabled, name="account_reset_password"),
     path("compte/", include("allauth.urls")),
+    path("", include("apps.shopping.urls")),
     path("foyer/", include("apps.households.urls")),
     path("recettes/", include("apps.catalog.urls")),
     path("menus/", include("apps.planner.urls")),

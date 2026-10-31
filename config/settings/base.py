@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.sources",
     "apps.planner",
+    "apps.shopping",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

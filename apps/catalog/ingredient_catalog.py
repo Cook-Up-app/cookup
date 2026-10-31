@@ -126,7 +126,7 @@ crevettes|B|cr||crevette;crevettes décortiquées
 moules|B|mo||moule
 calamars|B|mo||calamar;encornets
 lait|D|mi||lait demi-écrémé;lait entier;lait écrémé|1.03
-crème fraîche|D|mi||crème fraiche;crème épaisse;crème fraîche épaisse
+crème fraîche|D|mi||crème fraiche;crème épaisse;crème fraîche épaisse|1.0
 crème liquide|D|mi||crème fleurette;crème entière;crème
 beurre|D|mi||beurre doux;beurre demi-sel;beurre fondu;noix de beurre|0.91
 yaourt nature|D|mi||yaourt;yaourts;yaourt grec;yogourt
@@ -174,12 +174,12 @@ bouillon de bœuf|S|ce||cube de bouillon de bœuf;fond de veau;fond de bœuf;bou
 bouillon|S|ce||cube de bouillon;bouillon cube
 maïs en boîte|S|||maïs doux
 farine|S|gl|s|farine de blé;farine T55;farine tamisée|0.55
-fécule de maïs|S|||maïzena;fécule;fécule de pomme de terre
-levure chimique|S|gl||levure;sachet de levure
+fécule de maïs|S||s|maïzena;fécule;fécule de pomme de terre
+levure chimique|S|gl|s|levure;sachet de levure
 sucre|W||s|sucre en poudre;sucre semoule;sucre cristallisé|0.85
 sucre roux|W|||cassonade;sucre complet
 sucre glace|W
-sucre vanillé|W|||vanille;extrait de vanille;gousse de vanille;sucre vanille
+sucre vanillé|W||s|vanille;extrait de vanille;gousse de vanille;sucre vanille
 miel|W|||miel liquide|1.4
 sirop d'érable|W
 chocolat noir|W|so||chocolat pâtissier;chocolat à cuire;tablette de chocolat
@@ -211,29 +211,29 @@ huile de tournesol|C||s|huile;huile végétale;huile de colza;huile d'arachide;h
 huile de sésame|C|se
 vinaigre balsamique|C|su|s|vinaigre balsamique blanc;crème de balsamique
 vinaigre de vin|C|su|s|vinaigre;vinaigre blanc;vinaigre de cidre;vinaigre de riz
-moutarde|C|mu||moutarde de Dijon;moutarde forte;moutarde à l'ancienne
-ketchup|C
-sauce soja|C|so,gl||sauce soja salée;sauce soja sucrée;tamari
+moutarde|C|mu|s|moutarde de Dijon;moutarde forte;moutarde à l'ancienne
+ketchup|C||s
+sauce soja|C|so,gl|s|sauce soja salée;sauce soja sucrée;tamari
 sauce worcestershire|C|fi||worcestershire
 nuoc-mam|C|fi||sauce poisson;nuoc mam
-tabasco|C|||sauce piquante
-harissa|C
-curry|C|ce,mu||poudre de curry;curry en poudre
-curcuma|C
-paprika|C|||paprika doux;paprika fumé;piment doux
-cumin|C|||cumin moulu;graines de cumin
-coriandre moulue|C
-cannelle|C|||cannelle moulue;bâton de cannelle
-muscade|C|||noix de muscade
-piment|C|||piment de Cayenne;piment d'Espelette;piment en poudre;piment oiseau;flocons de piment
-herbes de Provence|C|||origan;herbes aromatiques;herbes séchées;persil séché
-gingembre moulu|C
-ras el hanout|C|||épices marocaines;mélange d'épices
-quatre-épices|C|||quatre épices;épices
-safran|C
-cardamome|C
-clou de girofle|C|||clous de girofle;girofle
-ail en poudre|C|||oignon en poudre;ail semoule
+tabasco|C||s|sauce piquante
+harissa|C||s
+curry|C|ce,mu|s|poudre de curry;curry en poudre
+curcuma|C||s
+paprika|C||s|paprika doux;paprika fumé;piment doux
+cumin|C||s|cumin moulu;graines de cumin
+coriandre moulue|C||s
+cannelle|C||s|cannelle moulue;bâton de cannelle
+muscade|C||s|noix de muscade
+piment|C||s|piment de Cayenne;piment d'Espelette;piment en poudre;piment oiseau;flocons de piment
+herbes de Provence|C||s|origan;herbes aromatiques;herbes séchées;persil séché
+gingembre moulu|C||s
+ras el hanout|C||s|épices marocaines;mélange d'épices
+quatre-épices|C||s|quatre épices;épices
+safran|C||s
+cardamome|C||s
+clou de girofle|C||s|clous de girofle;girofle
+ail en poudre|C||s|oignon en poudre;ail semoule
 pesto|C|tn,mi||pesto vert;pesto rouge;sauce pesto
 tahini|C|se||purée de sésame
 graines de sésame|C|se||sésame
@@ -252,3 +252,26 @@ jus de pomme|R
 thé|R|||thé noir;thé vert;infusion
 café|R|||café fort;expresso
 """.strip()
+
+
+# Conditionnements courants : nom -> (taille, unité de base, libellé).
+PACKAGES = {
+    "tomates concassées": (400, "g", "boîte"),
+    "pois chiches": (400, "g", "boîte"),
+    "haricots rouges": (400, "g", "boîte"),
+    "lait de coco": (400, "ml", "boîte"),
+    "lait": (1000, "ml", "brique"),
+    "crème liquide": (200, "ml", "brique"),
+    "crème fraîche": (200, "g", "pot"),
+    "beurre": (250, "g", "plaquette"),
+    "farine": (1000, "g", "paquet"),
+    "sucre": (1000, "g", "paquet"),
+    "riz": (500, "g", "paquet"),
+    "pâtes": (500, "g", "paquet"),
+    "semoule": (500, "g", "paquet"),
+    "lentilles": (500, "g", "paquet"),
+    "œuf": (6, "pièce", "boîte"),
+    "yaourt nature": (4, "pièce", "pack"),
+    "thon": (140, "g", "boîte"),
+    "concentré de tomate": (70, "g", "boîte"),
+}

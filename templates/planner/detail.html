@@ -2,6 +2,7 @@
 {% block title %}Menu{% endblock %}
 {% block content %}
   <h1>Menu du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }}</h1>
+  <p><a href="{% url 'shopping:detail' plan.pk %}">Liste de courses</a></p>
   <form method="post" action="{% url 'planner:regenerate' plan.pk %}">
     {% csrf_token %}
     <button type="submit">Régénérer ce qui n'est pas verrouillé</button>

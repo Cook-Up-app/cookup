@@ -219,6 +219,8 @@ class HouseholdSettings(models.Model):
         "part de Cookeo (%)", default=50, validators=[MaxValueValidator(100)]
     )
     weights = models.JSONField(default=dict, blank=True, validators=[validate_weights])
+    # Ordre des rayons choisi par le foyer (vide : parcours de magasin type).
+    aisle_order = ArrayField(models.CharField(max_length=20), default=list, blank=True)
 
     def __str__(self) -> str:
         return f"Réglages de {self.household}"

@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from apps.core.reference import Aisle
 
-from .ingredient_catalog import AISLES, ALLERGENS, CATALOG
+from .ingredient_catalog import AISLES, ALLERGENS, CATALOG, PACKAGES
 from .models import Ingredient
 from .text import stem_key
 from .traits import diet_flags, protein_group
@@ -37,6 +37,8 @@ def seed_ingredients() -> int:
         name = entry.pop("name")
         entry["diet_flags"] = diet_flags(name, entry["aisle"], entry["allergens"])
         entry["protein"] = protein_group(name, entry["allergens"])
+        size, unit, label = PACKAGES.get(name, (None, "", ""))
+        entry.update(package_size=size, package_unit=unit, package_label=label)
         Ingredient.objects.update_or_create(
             normalized_name=stem_key(name), defaults={"name": name, **entry}
         )

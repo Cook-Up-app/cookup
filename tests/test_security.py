@@ -65,3 +65,17 @@ def test_transaction_pooler_compatible_database_config(production_settings):
     assert config["CONN_MAX_AGE"] == 0
     assert config["OPTIONS"]["prepare_threshold"] is None
     assert config["OPTIONS"]["sslmode"] == "require"
+
+
+def test_wsgi_entrypoint_forces_production_settings(monkeypatch):
+    import importlib
+
+    monkeypatch.setenv("DJANGO_SETTINGS_MODULE", "config.settings.local")
+    monkeypatch.setattr("django.core.wsgi.get_wsgi_application", lambda: object())
+    import config.wsgi
+
+    importlib.reload(config.wsgi)
+
+    import os
+
+    assert os.environ["DJANGO_SETTINGS_MODULE"] == "config.settings.production"

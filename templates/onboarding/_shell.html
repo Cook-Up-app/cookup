@@ -1,0 +1,21 @@
+{% extends "base_auth.html" %}
+{% load ui %}
+{% block title %}{{ title }}{% endblock %}
+{% block card_class %} auth-card--wide{% endblock %}
+{% block content %}
+  <div class="wizard-top">
+    <progress value="{{ position }}" max="{{ total }}" aria-label="Progression de l'assistant">Étape {{ position }} sur {{ total }}</progress>
+    <div class="cluster wizard-meta">
+      <span class="wizard-count">Étape {{ position }} sur {{ total }}</span>
+      <form method="post" action="{% url 'onboarding:dismiss' %}" class="inline-form">
+        {% csrf_token %}<button type="submit" class="link-button">Passer l'assistant</button>
+      </form>
+    </div>
+  </div>
+  {% if diner %}
+    <p class="person"><span class="avatar" aria-hidden="true">{{ diner.first_name|initial }}</span><strong>{{ diner.first_name }}</strong></p>
+  {% endif %}
+  <h1 class="question">{{ title }}</h1>
+  {% if handler.help %}<p class="question-help">{{ handler.help }}</p>{% endif %}
+  {% block step %}{% endblock %}
+{% endblock %}

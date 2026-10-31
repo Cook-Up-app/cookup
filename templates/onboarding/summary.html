@@ -1,0 +1,15 @@
+{% extends "onboarding/_shell.html" %}
+{% load ui %}
+{% block step %}
+  <dl class="summary">
+    {% for label, value in summary %}
+      <div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
+    {% endfor %}
+  </dl>
+  <form method="post" class="wizard-nav">
+    {% csrf_token %}
+    <span class="wizard-next"><button type="submit" name="action" value="menu" class="btn btn-primary">{% icon "calendar" %}Générer mon premier menu</button></span>
+    {% if back_url %}<a class="btn btn-ghost wizard-back" href="{{ back_url }}">{% icon "arrow-left" %}Retour</a>{% else %}<span></span>{% endif %}
+    <button type="submit" name="action" value="home" class="btn btn-ghost wizard-skip">Accueil</button>
+  </form>
+{% endblock %}

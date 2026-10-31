@@ -1,0 +1,25 @@
+{% extends "onboarding/_shell.html" %}
+{% load ui %}
+{% block step %}
+  <form method="post" class="wizard-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% if handler.slug == "gouts" %}
+      <div class="taste-list">
+        {% for field in form %}
+          <div class="taste-row"><span class="taste-name">{{ field.label }}</span>{{ field }}</div>
+        {% endfor %}
+      </div>
+    {% else %}
+      {% for field in form %}
+        {{ field.errors }}
+        <div role="group" aria-label="{{ field.label }}">{{ field }}</div>
+      {% endfor %}
+    {% endif %}
+    <div class="wizard-nav">
+      <span class="wizard-next"><button type="submit" name="action" value="save" class="btn btn-primary">Continuer{% icon "arrow-right" %}</button></span>
+      {% if back_url %}<a class="btn btn-ghost wizard-back" href="{{ back_url }}">{% icon "arrow-left" %}Retour</a>{% else %}<span></span>{% endif %}
+      <button type="submit" name="action" value="skip" class="btn btn-ghost wizard-skip" formnovalidate>Passer</button>
+    </div>
+  </form>
+{% endblock %}

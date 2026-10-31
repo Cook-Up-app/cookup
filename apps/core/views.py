@@ -4,12 +4,13 @@ import json
 from django.conf import settings
 from django.db import Error as DatabaseError
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.templatetags.static import static
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_safe
 
 from apps.households.permissions import household_required
+from apps.onboarding import services as onboarding
 from apps.planner import dashboard
 from apps.sources.weekly import run_weekly_import
 
@@ -35,6 +36,8 @@ SHELL_ASSETS = (
 @household_required
 def home(request: HttpRequest) -> HttpResponse:
     """Accueil : les repas du jour, les courses restantes, et le prochain geste utile."""
+    if request.membership.is_owner and onboarding.needs_onboarding(request.household):
+        return redirect("onboarding:start")
     today = timezone.localdate()
     context = {
         "today_date": today,

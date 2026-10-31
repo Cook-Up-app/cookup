@@ -1,0 +1,11 @@
+{% extends "base_auth.html" %}
+{% load ui %}
+{% block title %}Session expirée{% endblock %}
+{% block content %}
+  <div class="empty">
+    {% icon "alert" %}
+    <h1 class="auth-title">Votre page a expiré</h1>
+    <p>Pour votre sécurité, le formulaire n'a pas été envoyé. Rechargez la page puis recommencez : rien n'a été perdu côté serveur.</p>
+    <a class="btn btn-primary" href="{% url 'core:home' %}">Retour à l'accueil</a>
+  </div>
+{% endblock %}

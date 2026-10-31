@@ -1,0 +1,3 @@
+<div class="tri" role="radiogroup" aria-label="{{ widget.attrs.aria_label|default:'Choix' }}">
+  {% for group, options, index in widget.optgroups %}{% for option in options %}<label><input type="radio" name="{{ option.name }}" value="{{ option.value }}" id="{{ option.attrs.id }}"{% if option.selected %} checked{% endif %}><span>{{ option.label }}</span></label>{% endfor %}{% endfor %}
+</div>

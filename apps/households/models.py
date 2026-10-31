@@ -221,6 +221,9 @@ class HouseholdSettings(models.Model):
     weights = models.JSONField(default=dict, blank=True, validators=[validate_weights])
     # Ordre des rayons choisi par le foyer (vide : parcours de magasin type).
     aisle_order = ArrayField(models.CharField(max_length=20), default=list, blank=True)
+    onboarded_at = models.DateTimeField(
+        null=True, blank=True
+    )  # assistant d'accueil terminé ou passé
 
     def __str__(self) -> str:
         return f"Réglages de {self.household}"

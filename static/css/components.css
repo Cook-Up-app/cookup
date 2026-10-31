@@ -985,14 +985,49 @@ progress::-moz-progress-bar {
 .wizard-nav {
   position: sticky;
   bottom: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
   margin-top: var(--s-6);
   padding: var(--s-3) 0 calc(var(--s-3) + env(safe-area-inset-bottom));
   background: var(--surface);
+}
+
+.wizard-next {
+  grid-column: 1 / -1;
+  order: -1;
+}
+
+.wizard-next .btn {
+  width: 100%;
+}
+
+.wizard-back {
+  justify-self: start;
+}
+
+.wizard-skip {
+  justify-self: end;
+}
+
+@media (min-width: 640px) {
+  .wizard-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .wizard-next {
+    order: 0;
+  }
+
+  .wizard-next .btn {
+    width: auto;
+  }
+
+  .wizard-back {
+    margin-right: auto;
+  }
 }
 
 .person {
@@ -1012,11 +1047,10 @@ progress::-moz-progress-bar {
   position: relative;
   display: grid;
   place-items: center;
-  min-width: 3.4rem;
   min-height: var(--tap);
-  padding: 0 var(--s-3);
+  padding: 0 0.7rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .tri input {
@@ -1191,4 +1225,57 @@ output {
 
 details > summary .badge {
   margin-left: var(--s-2);
+}
+
+/* ---------- Assistant : détails ---------- */
+.auth-card--wide {
+  max-width: 40rem;
+}
+
+.wizard-meta {
+  justify-content: space-between;
+}
+
+.taste-list {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.taste-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.taste-name {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.summary {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+}
+
+.summary div {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+}
+
+.summary dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.summary dd {
+  margin: 0;
+  font-weight: 600;
 }

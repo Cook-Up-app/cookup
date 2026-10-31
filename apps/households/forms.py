@@ -52,12 +52,19 @@ class DinerForm(forms.ModelForm):
     class Meta:
         model = Diner
         fields = ["first_name", "age_group", "diets"]
+        labels = {"age_group": "Tranche d'âge"}
+        widgets = {"age_group": forms.RadioSelect}
 
 
 class RestrictionForm(forms.ModelForm):
     class Meta:
         model = DinerRestriction
         fields = ["allergen", "ingredient_name", "severity"]
+        labels = {"allergen": "Allergène", "severity": "Gravité"}
+        help_texts = {
+            "ingredient_name": "Pour un aliment qui ne figure pas dans la liste ci-dessus."
+        }
+        widgets = {"severity": forms.RadioSelect}
 
     def clean(self):
         cleaned = super().clean()

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.sources",
     "apps.planner",
     "apps.shopping",
+    "apps.onboarding",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -168,12 +169,15 @@ APP_VERSION = env_str("VERCEL_GIT_COMMIT_SHA", "dev")[:12]
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 
+# Serveurs d'images des sources de recettes (photos affichées directement par le navigateur).
+IMAGE_DOMAINS = env_list("SOURCES_IMAGE_DOMAINS", ("assets.afcdn.com",))
+
 # Sans `unsafe-inline` ni `unsafe-eval` : Alpine.js utilisera sa variante CSP.
 SECURE_CSP = {
     "default-src": [CSP.SELF],
     "script-src": [CSP.SELF],
     "style-src": [CSP.SELF],
-    "img-src": [CSP.SELF, "data:"],
+    "img-src": [CSP.SELF, "data:", *(f"https://{domain}" for domain in IMAGE_DOMAINS)],
     "object-src": [CSP.NONE],
     "base-uri": [CSP.SELF],
     "form-action": [CSP.SELF],

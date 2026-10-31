@@ -19,6 +19,7 @@ urlpatterns = [
     path("foyer/", include("apps.households.urls")),
     path("recettes/", include("apps.catalog.urls")),
     path("menus/", include("apps.planner.urls")),
+    path("bienvenue/", include("apps.onboarding.urls")),
     path("invitation/<str:token>", accept_invitation, name="accept-invitation"),
     # Chemins français de la spec. Placés après allauth : `reverse` retient le dernier motif
     # portant un nom, et ces chemins n'entrent pas en conflit avec ceux d'allauth.

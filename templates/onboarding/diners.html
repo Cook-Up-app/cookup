@@ -1,0 +1,28 @@
+{% extends "onboarding/_shell.html" %}
+{% load ui %}
+{% block step %}
+  {% if diners %}
+    <ul class="rows">
+      {% for person in diners %}
+        <li class="row">
+          <span class="avatar" aria-hidden="true">{{ person.first_name|initial }}</span>
+          <span class="row-main"><span class="row-title">{{ person.first_name }}</span><span class="row-sub">{{ person.get_age_group_display }}</span></span>
+          <form method="post">
+            {% csrf_token %}<input type="hidden" name="diner" value="{{ person.pk }}">
+            <button type="submit" name="action" value="remove" class="btn btn-sm btn-icon btn-ghost" aria-label="Retirer {{ person.first_name }}">{% icon "trash" %}</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <form method="post" class="card card--flat stack mt">
+    {% csrf_token %}
+    <h2>{% if diners %}Ajouter quelqu'un d'autre{% else %}Ajouter la première personne{% endif %}</h2>
+    {{ form }}
+    <button type="submit" name="action" value="add" class="btn">{% icon "plus" %}Ajouter</button>
+  </form>
+  <div class="wizard-nav">
+    <span class="wizard-next"><a class="btn btn-primary" href="{{ next_url }}">Continuer{% icon "arrow-right" %}</a></span>
+    {% if back_url %}<a class="btn btn-ghost wizard-back" href="{{ back_url }}">{% icon "arrow-left" %}Retour</a>{% else %}<span></span>{% endif %}
+  </div>
+{% endblock %}

@@ -1,10 +1,42 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Préférences{% endblock %}
 {% block content %}
-  <h1>Préférences du foyer</h1>
-  <form method="post">
+  <header class="page-header"><div><h1>Préférences du foyer</h1><p>Ces réglages guident la génération des menus.</p></div></header>
+  <form method="post" class="stack-lg form-card">
     {% csrf_token %}
-    {{ form.as_p }}
-    {% if request.membership.is_owner %}<button type="submit">Enregistrer</button>{% endif %}
+    {{ form.non_field_errors }}
+    <section class="card">
+      <h2>Repas et temps</h2>
+      {{ form.meals.as_field_group }}
+      {{ form.max_minutes_weekday.as_field_group }}
+      {{ form.max_minutes_weekend.as_field_group }}
+      {{ form.budget_level.as_field_group }}
+    </section>
+    <section class="card">
+      <h2>Habitudes</h2>
+      {{ form.leftover_weekdays.as_field_group }}
+      {{ form.min_repeat_days.as_field_group }}
+      {{ form.vegetarian_per_week.as_field_group }}
+    </section>
+    <section class="card">
+      <h2>Source des recettes</h2>
+      {{ form.source_mode.as_field_group }}
+      {{ form.cookeo_share.as_field_group }}
+    </section>
+    <details class="card">
+      <summary><strong>Réglages avancés : poids du moteur</strong></summary>
+      <p class="muted mt">Laissez vide pour garder les valeurs par défaut (de 0 à 100).</p>
+      <div class="stack">
+        {{ form.weight_taste.as_field_group }}
+        {{ form.weight_rating.as_field_group }}
+        {{ form.weight_freshness.as_field_group }}
+        {{ form.weight_diversity.as_field_group }}
+        {{ form.weight_antiwaste.as_field_group }}
+        {{ form.weight_budget.as_field_group }}
+        {{ form.weight_season.as_field_group }}
+      </div>
+    </details>
+    {% if request.membership.is_owner %}<div class="sticky-actions"><button type="submit" class="btn btn-primary btn-block">Enregistrer</button></div>{% endif %}
   </form>
 {% endblock %}

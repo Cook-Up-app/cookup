@@ -6,17 +6,24 @@ from django.db import Error as DatabaseError
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_safe
 
+from apps.households.permissions import household_required
+from apps.planner import dashboard
 from apps.sources.weekly import run_weekly_import
 
 from . import services
 
 BEARER_PREFIX = "Bearer "
 SHELL_ASSETS = (
-    "css/app.css",
+    "css/tokens.css",
+    "css/base.css",
+    "css/layout.css",
+    "css/components.css",
     "js/outbox.js",
     "js/offline.js",
+    "js/ui.js",
     "js/durations.js",
     "js/kitchen.js",
     "js/export.js",
@@ -25,8 +32,22 @@ SHELL_ASSETS = (
 
 
 @require_safe
+@household_required
 def home(request: HttpRequest) -> HttpResponse:
-    return render(request, "home.html")
+    """Accueil : les repas du jour, les courses restantes, et le prochain geste utile."""
+    today = timezone.localdate()
+    context = {
+        "today_date": today,
+        "household": request.household,
+        **dashboard.build(request.household, today),
+    }
+    return render(request, "home.html", context)
+
+
+@require_safe
+def more(request: HttpRequest) -> HttpResponse:
+    """Page « Plus » : tout ce qui ne tient pas dans la barre du bas."""
+    return render(request, "more.html")
 
 
 @require_safe

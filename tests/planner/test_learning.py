@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.urls import reverse
 
@@ -178,7 +180,7 @@ def test_feedback_form_saves_the_household_opinion(owner_client, home):
     feedback = RecipeFeedback.objects.get(household=home, recipe=gratin)
     assert (feedback.rating, feedback.favorite, feedback.excluded) == (4, True, False)
     page = owner_client.get(reverse("catalog:detail", args=[gratin.pk])).content.decode()
-    assert 'value="4" selected' in page.replace("\n", " ") and "Votre avis" in page
+    assert re.search(r'<input[^>]*value="4"[^>]*checked', page) and "Votre avis" in page
 
 
 def test_feedback_can_be_changed_and_cleared(owner_client, home):

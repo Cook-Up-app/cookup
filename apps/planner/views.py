@@ -94,7 +94,8 @@ def menu_detail(request: HttpRequest, pk) -> HttpResponse:
     days: dict[date, list[MenuSlot]] = {}
     for slot in slots:
         days.setdefault(slot.day, []).append(slot)
-    return render(request, "planner/detail.html", {"plan": plan, "days": days.items()})
+    context = {"plan": plan, "days": days.items(), "today": _today()}
+    return render(request, "planner/detail.html", context)
 
 
 @require_POST

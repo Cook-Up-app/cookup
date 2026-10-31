@@ -1,38 +1,60 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}{{ diner.first_name }}{% endblock %}
 {% block content %}
-  <h1>{{ diner.first_name }}</h1>
-  <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
-  <p><a href="{% url 'households:diner-tastes' diner.pk %}">Goûts</a></p>
-  <h2>Allergies, intolérances et aliments évités</h2>
-  <ul class="list">
-    {% for restriction in diner.restrictions.all %}
-      <li>
-        {{ restriction.get_severity_display }} : {% if restriction.allergen %}{{ restriction.get_allergen_display }}{% else %}{{ restriction.ingredient_name }}{% endif %}
-        {% if request.membership.is_owner %}
-          <form method="post" action="{% url 'households:restriction-delete' restriction.pk %}">
-            {% csrf_token %}<button type="submit">Supprimer</button>
-          </form>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li>Aucune restriction.</li>
-    {% endfor %}
-  </ul>
+  <a class="back-link" href="{% url 'households:diners' %}">{% icon "arrow-left" %}Convives</a>
+  <header class="page-header">
+    <div class="person">
+      <span class="avatar" aria-hidden="true">{{ diner.first_name|initial }}</span>
+      <div><h1>{{ diner.first_name }}</h1><p>{{ diner.get_age_group_display }}</p></div>
+    </div>
+    <div class="page-actions"><a class="btn" href="{% url 'households:diner-tastes' diner.pk %}">{% icon "heart" %}Goûts</a></div>
+  </header>
+
+  <p class="notice">{% icon "info" %}<span>Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</span></p>
+
+  <h2 class="section-title">Allergies, intolérances et aliments évités</h2>
+  {% if diner.restrictions.all %}
+    <ul class="rows">
+      {% for restriction in diner.restrictions.all %}
+        <li class="row">
+          <span class="row-main">
+            <span class="row-title">{% if restriction.allergen %}{{ restriction.get_allergen_display }}{% else %}{{ restriction.ingredient_name }}{% endif %}</span>
+          </span>
+          <span class="badge {% if restriction.severity == 'strict_allergy' %}badge--danger{% else %}badge--warning{% endif %}">{{ restriction.get_severity_display }}</span>
+          {% if request.membership.is_owner %}
+            <form method="post" action="{% url 'households:restriction-delete' restriction.pk %}">
+              {% csrf_token %}<button type="submit" class="btn btn-sm btn-icon btn-danger" aria-label="Supprimer cette restriction">{% icon "trash" %}</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Aucune restriction déclarée.</p>
+  {% endif %}
+
   {% if request.membership.is_owner %}
-    <form method="post" action="{% url 'households:restriction-add' diner.pk %}">
-      {% csrf_token %}
-      {{ restriction_form.as_p }}
-      <button type="submit">Ajouter la restriction</button>
-    </form>
-    <h2>Profil</h2>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Enregistrer</button>
-    </form>
-    <form method="post" action="{% url 'households:diner-delete' diner.pk %}">
-      {% csrf_token %}<button type="submit">Supprimer ce convive</button>
+    <section class="card form-card mt">
+      <h3>Ajouter une restriction</h3>
+      <form method="post" action="{% url 'households:restriction-add' diner.pk %}" class="stack">
+        {% csrf_token %}
+        {{ restriction_form }}
+        <button type="submit" class="btn btn-primary">Ajouter la restriction</button>
+      </form>
+    </section>
+
+    <section class="card form-card mt">
+      <h2>Profil</h2>
+      <form method="post" class="stack">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </form>
+    </section>
+
+    <form method="post" action="{% url 'households:diner-delete' diner.pk %}" class="mt" data-confirm="Supprimer ce convive et ses restrictions ?">
+      {% csrf_token %}<button type="submit" class="btn btn-danger">{% icon "trash" %}Supprimer ce convive</button>
     </form>
   {% endif %}
 {% endblock %}

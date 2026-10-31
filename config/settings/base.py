@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.admin",
     "django.contrib.postgres",
+    "django.forms",
     "allauth",
     "allauth.account",
     "allauth.mfa",
@@ -35,6 +36,9 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = "accounts.User"
+
+# Gabarits de formulaires du projet (puces, champs groupés) : voir templates/django/forms/.
+FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -65,6 +69,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.core.context.ui",
                 "django.template.context_processors.csp",
             ],
         },
@@ -131,6 +136,9 @@ CACHES = {
         "LOCATION": "django_cache",
     }
 }
+
+# Connexion directe aux comptes de démonstration (développement local uniquement).
+DEV_LOGIN = False
 
 # Chemin de l'administration ; désactivée si la variable est absente (cas de la production).
 ADMIN_PATH = env_str("ADMIN_PATH")

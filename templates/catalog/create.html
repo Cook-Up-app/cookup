@@ -1,10 +1,26 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Nouvelle recette{% endblock %}
 {% block content %}
-  <h1>Nouvelle recette</h1>
-  <form method="post">
+  <a class="back-link" href="{% url 'catalog:list' %}">{% icon "arrow-left" %}Recettes</a>
+  <header class="page-header"><div><h1>Nouvelle recette</h1><p>Un ingrédient par ligne, avec sa quantité : « 200 g de farine », « 2 c. à soupe d'huile ».</p></div></header>
+  <form method="post" class="stack-lg form-card">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Enregistrer</button>
+    {{ form.non_field_errors }}
+    <section class="card">
+      <h2>Présentation</h2>
+      {{ form.title.as_field_group }}
+      {{ form.servings.as_field_group }}
+      {{ form.prep_minutes.as_field_group }}
+      {{ form.cook_minutes.as_field_group }}
+      {{ form.meal_types.as_field_group }}
+      {{ form.tags.as_field_group }}
+    </section>
+    <section class="card">
+      <h2>Ingrédients et étapes</h2>
+      {{ form.ingredients.as_field_group }}
+      {{ form.steps.as_field_group }}
+    </section>
+    <div class="sticky-actions"><button type="submit" class="btn btn-primary btn-block">Enregistrer la recette</button></div>
   </form>
 {% endblock %}

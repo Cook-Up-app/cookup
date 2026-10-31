@@ -1,7 +1,11 @@
-{% extends "base.html" %}
+{% extends "base_auth.html" %}
+{% load ui %}
 {% block title %}Hors ligne{% endblock %}
 {% block content %}
-  <h1>Vous êtes hors ligne</h1>
-  <p>Cette page n'est pas disponible sans connexion. La liste de courses et les recettes du menu que vous avez ouvertes restent consultables, et vos cases cochées seront synchronisées au retour du réseau.</p>
-  <p><a href="{% url 'core:home' %}">Réessayer</a></p>
+  <div class="empty">
+    {% icon "wifi-off" %}
+    <h1 class="auth-title">Vous êtes hors ligne</h1>
+    <p>Cette page n'est pas disponible sans connexion. La liste de courses et les recettes du menu que vous avez ouvertes restent consultables, et vos cases cochées seront synchronisées au retour du réseau.</p>
+    <a class="btn btn-primary" href="{% url 'core:home' %}">Réessayer</a>
+  </div>
 {% endblock %}

@@ -1,0 +1,18 @@
+{% load ui %}
+<div class="row meal">
+  <span class="thumb" aria-hidden="true">
+    {% if slot.recipe.image_url %}<img src="{{ slot.recipe.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}{% icon "chef" %}{% endif %}
+  </span>
+  <span class="row-main">
+    <span class="meal-label">{{ slot.get_meal_type_display }}</span>
+    {% if slot.out_of_home %}
+      <span class="row-title">Hors de la maison</span>
+    {% elif slot.recipe %}
+      <a class="row-title" href="{% url 'catalog:detail' slot.recipe.pk %}">{{ slot.recipe.title }}</a>
+      <span class="row-sub">{% if slot.recipe.total_minutes %}{{ slot.recipe.total_minutes }} min{% endif %}{% if slot.leftover %} · restes{% endif %}{% if slot.recipe.cookeo_compatible %} · Cookeo{% endif %}</span>
+    {% endif %}
+  </span>
+  {% if slot.recipe and not slot.out_of_home %}
+    <a class="btn btn-sm btn-ghost btn-collapse" href="{% url 'catalog:kitchen' slot.recipe.pk %}" aria-label="Cuisiner {{ slot.recipe.title }}">{% icon "play" %}<span class="btn-label">Cuisiner</span></a>
+  {% endif %}
+</div>

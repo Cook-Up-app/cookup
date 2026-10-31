@@ -1,20 +1,29 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Menus{% endblock %}
 {% block content %}
-  <h1>Menus</h1>
-  <p><a href="{% url 'planner:new' %}">Nouveau menu</a></p>
-  <ul class="list">
-    {% for plan in page %}
-      <li><a href="{% url 'planner:detail' plan.pk %}">Du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }}</a></li>
-    {% empty %}
-      <li>Aucun menu pour le moment.</li>
-    {% endfor %}
-  </ul>
-  {% if page.has_other_pages %}
-    <nav aria-label="Pagination">
-      {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Précédent</a>{% endif %}
-      Page {{ page.number }} / {{ page.paginator.num_pages }}
-      {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Suivant</a>{% endif %}
-    </nav>
+  <header class="page-header">
+    <div><h1>Menus</h1><p>Vos menus passés et à venir.</p></div>
+    <div class="page-actions"><a class="btn btn-primary" href="{% url 'planner:new' %}">{% icon "plus" %}Nouveau menu</a></div>
+  </header>
+  {% if page.object_list %}
+    <ul class="rows">
+      {% for plan in page %}
+        <li>
+          <a class="row" href="{% url 'planner:detail' plan.pk %}">
+            <span class="thumb" aria-hidden="true">{% icon "calendar" %}</span>
+            <span class="row-main">
+              <span class="row-title">Du {{ plan.start_date|date:"j F" }} au {{ plan.end_date|date:"j F Y" }}</span>
+              <span class="row-sub">Créé le {{ plan.created_at|date:"j F Y" }}</span>
+            </span>
+            {% icon "chevron" %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% include "components/pagination.html" %}
+  {% else %}
+    {% url 'planner:new' as new_menu %}
+    {% include "components/empty.html" with icon="calendar" title="Aucun menu pour le moment" text="Générez votre premier menu : il tient compte des allergies, des goûts et de vos équipements." url=new_menu cta="Créer un menu" %}
   {% endif %}
 {% endblock %}

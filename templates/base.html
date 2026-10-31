@@ -1,41 +1,49 @@
-{% load static %}<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Menu du jour{% endblock %}</title>
-  <meta name="theme-color" content="#4f7a3a">
-  <link rel="manifest" href="{% url 'core:manifest' %}">
-  <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  {% block extra_head %}{% endblock %}
-  <script src="{% static 'js/outbox.js' %}" defer></script>
-  <script src="{% static 'js/offline.js' %}" defer></script>
-</head>
-<body>
-  {% if user.is_authenticated %}
-    <nav class="nav no-print" aria-label="Navigation principale">
-      <a href="{% url 'core:home' %}">Menu du jour</a>
-      <a href="{% url 'households:home' %}">Foyer</a>
-      <a href="{% url 'planner:list' %}">Menus</a>
-      <a href="{% url 'catalog:list' %}">Recettes</a>
-      <a href="{% url 'households:diners' %}">Convives</a>
-      <a href="{% url 'households:equipment' %}">Équipements</a>
-      <a href="{% url 'households:preferences' %}">Préférences</a>
-      <a href="{% url 'mfa_index' %}">Sécurité</a>
-      <form method="post" action="{% url 'account_logout' %}">
-        {% csrf_token %}
-        <button type="submit" class="link-button">Déconnexion</button>
-      </form>
+{% extends "_document.html" %}
+{% load ui %}
+{% block body %}
+<div class="app">
+  <aside class="sidebar" aria-label="Menu latéral">
+    <a class="brand" href="{% url 'core:home' %}">{% icon "leaf" %}<span>Menu du jour</span></a>
+    <nav class="sidebar-nav" aria-label="Navigation principale">
+      {% for item in nav_primary %}
+        <a class="side-link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a>
+      {% endfor %}
+      <p class="sidebar-group">Mon foyer</p>
+      {% for item in nav_household %}
+        <a class="side-link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a>
+      {% endfor %}
+      <p class="sidebar-group">Compte</p>
+      {% for item in nav_account %}
+        <a class="side-link" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a>
+      {% endfor %}
     </nav>
-  {% endif %}
-  <main>
-    {% if messages %}
-      <ul class="messages" role="status">
-        {% for message in messages %}<li class="message message-{{ message.level_tag }}">{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-    {% block content %}{% endblock %}
-  </main>
-</body>
-</html>
+    <div class="sidebar-footer">
+      <div class="person">
+        <span class="avatar" aria-hidden="true">{{ user.get_short_name|initial }}</span>
+        <span class="row-main"><span class="row-title">{{ user.get_short_name }}</span></span>
+      </div>
+      <form method="post" action="{% url 'account_logout' %}" class="no-print">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost btn-block">{% icon "logout" %}Se déconnecter</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <a class="brand" href="{% url 'core:home' %}">{% icon "leaf" %}<span>Menu du jour</span></a>
+    </header>
+    <main id="main" class="page{% block page_class %}{% endblock %}" tabindex="-1">
+      {% include "components/messages.html" %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navigation principale">
+    {% for item in nav_primary %}
+      <a class="nav-item" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a>
+    {% endfor %}
+    <a class="nav-item" href="{{ nav_more.url }}"{% if nav_more.active %} aria-current="page"{% endif %}>{% icon nav_more.icon %}<span>{{ nav_more.label }}</span></a>
+  </nav>
+</div>
+{% endblock %}

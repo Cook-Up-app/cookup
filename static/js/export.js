@@ -32,8 +32,8 @@
   }
 
   function collect() {
-    return Array.prototype.map.call(document.querySelectorAll("[data-shopping] details"), function (block) {
-      var heading = block.querySelector("summary h2");
+    return Array.prototype.map.call(document.querySelectorAll("[data-shopping] details.aisle"), function (block) {
+      var heading = block.querySelector(".aisle-name");
       return {
         aisle: heading ? heading.textContent.trim() : "",
         items: Array.prototype.filter
@@ -41,11 +41,11 @@
             return !li.hidden;
           })
           .map(function (li) {
-            var text = (li.querySelector("span") || li).textContent.replace(/\s+/g, " ").trim();
-            var parts = text.split(" — ");
+            var title = li.querySelector(".row-title");
+            var quantity = li.querySelector("[data-qty]");
             return {
-              label: parts[0].replace(/\s*\(facultatif\)$/, ""),
-              quantity: parts.slice(1).join(" — ").replace(/\s*\(facultatif\)$/, ""),
+              label: title ? title.textContent.trim() : "",
+              quantity: quantity ? quantity.textContent.trim() : "",
               checked: li.classList.contains("done"),
             };
           }),

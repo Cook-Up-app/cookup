@@ -1,6 +1,10 @@
-{% extends "base.html" %}
+{% extends "base_auth.html" %}
+{% load ui %}
 {% block title %}Invitation invalide{% endblock %}
 {% block content %}
-  <h1>Invitation invalide</h1>
-  <p>Ce lien est inconnu, expiré ou déjà utilisé. Demandez-en un nouveau au propriétaire du foyer.</p>
+  <div class="empty">
+    {% icon "alert" %}
+    <h1 class="auth-title">Invitation invalide</h1>
+    <p>Ce lien est inconnu, expiré ou déjà utilisé. Demandez-en un nouveau au propriétaire du foyer.</p>
+  </div>
 {% endblock %}

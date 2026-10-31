@@ -1,54 +1,75 @@
 {% extends "base.html" %}
-{% load shopping_extras static %}
+{% load static ui shopping_extras %}
 {% block title %}Courses{% endblock %}
 {% block extra_head %}<script src="{% static 'js/export.js' %}" defer></script>{% endblock %}
 {% block content %}
   <div data-shopping data-sync-url="{% url 'shopping:sync' plan.pk %}" data-csrf-cookie="{{ csrf_cookie_name }}">
-  <h1>Liste de courses</h1>
-  <p id="sync-status" role="status" aria-live="polite" class="notice" hidden></p>
-  <p>Menu du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }} — {{ remaining }} à acheter sur {{ total }}.</p>
-  <p>
-    <a href="{% url 'planner:detail' plan.pk %}">Menu</a> ·
-    <a href="{% url 'shopping:aisles' %}">Ordre des rayons</a> ·
-    <a href="{% url 'shopping:pantry' %}">Placard</a>
-  </p>
-  <p class="no-print">
-    <button type="button" data-export="copy">Copier en texte</button>
-    <button type="button" data-export="share">Partager</button>
-    <button type="button" data-export="print">Imprimer</button>
-  </p>
-  <form method="post" action="{% url 'shopping:regenerate' plan.pk %}">
-    {% csrf_token %}<button type="submit">Recalculer depuis le menu</button>
-  </form>
-  {% for aisle, items in sections %}
-    <details open>
-      <summary><h2 class="inline">{{ aisle }}</h2></summary>
-      <ul class="list">
-        {% for item in items %}
-          <li class="{% if item.checked %}done{% endif %}" data-item="{{ item.pk }}">
-            <form method="post" action="{% url 'shopping:toggle' plan.pk item.pk %}" data-action="toggle">
-              {% csrf_token %}
-              <button type="submit" class="check" aria-pressed="{{ item.checked|yesno:'true,false' }}">{% if item.checked %}☑{% else %}☐{% endif %}</button>
-            </form>
-            <span>{{ item.label }}{% with text=item|quantity_text %}{% if text %} — {{ text }}{% endif %}{% endwith %}{% if item.optional %} <em>(facultatif)</em>{% endif %}</span>
-            {% if item.recipes %}
-              <details><summary>Recettes</summary>{% for recipe in item.recipes %}{{ recipe.1 }}{% if not forloop.last %}, {% endif %}{% endfor %}</details>
-            {% elif item.manual %}<em>ajouté à la main</em>{% endif %}
-            <form method="post" action="{% url 'shopping:remove' plan.pk item.pk %}" data-action="remove">
-              {% csrf_token %}<button type="submit">Retirer</button>
-            </form>
-          </li>
-        {% endfor %}
-      </ul>
-    </details>
-  {% empty %}
-    <p>Aucun article : le menu ne contient pas de recette, ou tout est déjà au placard.</p>
-  {% endfor %}
-  <h2>Ajouter un article</h2>
-  <form method="post" action="{% url 'shopping:add' plan.pk %}" data-action="add">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Ajouter</button>
-  </form>
+    <a class="back-link no-print" href="{% url 'planner:detail' plan.pk %}">{% icon "arrow-left" %}Menu</a>
+    <header class="page-header">
+      <div>
+        <h1>Liste de courses</h1>
+        <p>Menu du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }} — {{ remaining }} à acheter sur {{ total }}.</p>
+      </div>
+      <div class="page-actions no-print">
+        <button type="button" class="btn btn-sm btn-collapse" data-export="copy" aria-label="Copier la liste en texte">{% icon "copy" %}<span class="btn-label">Copier</span></button>
+        <button type="button" class="btn btn-sm btn-collapse" data-export="share" aria-label="Partager la liste">{% icon "share" %}<span class="btn-label">Partager</span></button>
+        <button type="button" class="btn btn-sm btn-collapse" data-export="print" aria-label="Imprimer la liste">{% icon "print" %}<span class="btn-label">Imprimer</span></button>
+      </div>
+    </header>
+
+    <p id="sync-status" role="status" aria-live="polite" class="notice" hidden></p>
+    {% if total %}<progress value="{{ done }}" max="{{ total }}" aria-label="Avancement des courses">{{ done }} sur {{ total }}</progress>{% endif %}
+
+    <div class="cluster no-print mt">
+      <form method="post" action="{% url 'shopping:regenerate' plan.pk %}">
+        {% csrf_token %}<button type="submit" class="btn btn-sm">{% icon "swap" %}Recalculer depuis le menu</button>
+      </form>
+      <a class="btn btn-sm" href="{% url 'shopping:aisles' %}">{% icon "rows" %}Ordre des rayons</a>
+      <a class="btn btn-sm" href="{% url 'shopping:pantry' %}">{% icon "box" %}Placard</a>
+    </div>
+
+    <div class="mt">
+      {% for aisle, items in sections %}
+        <details class="card aisle" open>
+          <summary><span class="aisle-name">{{ aisle }}</span><span class="badge">{{ items|length }}</span></summary>
+          <ul class="ingredient-list">
+            {% for item in items %}
+              <li class="shop-item{% if item.checked %} done{% endif %}" data-item="{{ item.pk }}">
+                <form method="post" action="{% url 'shopping:toggle' plan.pk item.pk %}" data-action="toggle">
+                  {% csrf_token %}
+                  <button type="submit" class="check-btn" aria-label="Cocher {{ item.label }}" aria-pressed="{{ item.checked|yesno:'true,false' }}">{% if item.checked %}☑{% else %}☐{% endif %}</button>
+                </form>
+                <span class="row-main">
+                  <span class="row-title">{{ item.label }}</span>
+                  {% with text=item|quantity_text %}<span class="row-sub" data-qty>{{ text }}</span>{% endwith %}
+                  {% if item.optional %}<span class="row-sub"><em>(facultatif)</em></span>{% endif %}
+                  {% if item.recipes %}
+                    <details class="row-sub"><summary>Recettes</summary>{% for recipe in item.recipes %}{{ recipe.1 }}{% if not forloop.last %}, {% endif %}{% endfor %}</details>
+                  {% elif item.manual %}<span class="row-sub"><em>ajouté à la main</em></span>{% endif %}
+                </span>
+                <form method="post" action="{% url 'shopping:remove' plan.pk item.pk %}" data-action="remove" class="no-print">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-icon btn-ghost" aria-label="Retirer {{ item.label }}">{% icon "trash" %}</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% empty %}
+        {% include "components/empty.html" with icon="cart" title="Rien à acheter" text="Le menu ne contient pas de recette, ou tout est déjà au placard." %}
+      {% endfor %}
+    </div>
+
+    <form method="post" action="{% url 'shopping:add' plan.pk %}" data-action="add" class="sticky-add no-print mt">
+      {% csrf_token %}
+      <div class="add-row">
+        {{ form.label }}
+        <button type="submit" class="btn btn-primary btn-icon" aria-label="Ajouter l'article">{% icon "plus" %}</button>
+      </div>
+      <details class="add-more">
+        <summary>Quantité et rayon</summary>
+        <div class="add-grid">{{ form.quantity }}{{ form.aisle }}</div>
+      </details>
+    </form>
   </div>
 {% endblock %}

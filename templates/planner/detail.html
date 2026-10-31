@@ -1,36 +1,58 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Menu{% endblock %}
 {% block content %}
-  <h1>Menu du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }}</h1>
-  <p><a href="{% url 'shopping:detail' plan.pk %}">Liste de courses</a></p>
-  <form method="post" action="{% url 'planner:regenerate' plan.pk %}">
-    {% csrf_token %}
-    <button type="submit">Régénérer ce qui n'est pas verrouillé</button>
-  </form>
+  <a class="back-link" href="{% url 'planner:list' %}">{% icon "arrow-left" %}Menus</a>
+  <header class="page-header">
+    <div>
+      <h1>Menu du {{ plan.start_date|date:"j F" }} au {{ plan.end_date|date:"j F" }}</h1>
+      <p>Verrouillez ce qui vous plaît, remplacez le reste, puis ouvrez la liste de courses.</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-primary" href="{% url 'shopping:detail' plan.pk %}">{% icon "cart" %}Liste de courses</a>
+      <form method="post" action="{% url 'planner:regenerate' plan.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn">{% icon "swap" %}Régénérer le reste</button>
+      </form>
+    </div>
+  </header>
+
   {% for day, slots in days %}
-    <section>
-      <h2>{{ day|date:"l j F" }}</h2>
-      <ul class="list">
+    <section class="day{% if day == today %} is-today{% endif %}">
+      <h2 class="day-title">{{ day|date:"l j F" }}</h2>
+      <ul class="rows">
         {% for slot in slots %}
-          <li>
-            <strong>{{ slot.get_meal_type_display }}</strong> :
-            {% if slot.out_of_home %}
-              hors maison
-            {% elif slot.recipe %}
-              <a href="{% url 'catalog:detail' slot.recipe.pk %}">{{ slot.recipe.title }}</a>
-              {% if slot.leftover %}(restes){% endif %}{% if slot.recipe.cookeo_compatible %} <span class="badge">Cookeo</span>{% endif %}
-              {% if slot.locked %}🔒{% endif %}
-              <br><small>{{ slot.explanation }}</small>
-            {% endif %}
-            <form method="post" action="{% url 'planner:lock' plan.pk slot.pk %}">
-              {% csrf_token %}<button type="submit">{% if slot.locked %}Déverrouiller{% else %}Verrouiller{% endif %}</button>
-            </form>
-            <form method="post" action="{% url 'planner:replace' plan.pk slot.pk %}">
-              {% csrf_token %}<button type="submit">Remplacer</button>
-            </form>
-            <form method="post" action="{% url 'planner:out-of-home' plan.pk slot.pk %}">
-              {% csrf_token %}<button type="submit">{% if slot.out_of_home %}Remettre à la maison{% else %}Hors maison{% endif %}</button>
-            </form>
+          <li class="row meal">
+            <span class="thumb" aria-hidden="true">
+              {% if slot.recipe.image_url %}<img src="{{ slot.recipe.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}{% icon "chef" %}{% endif %}
+            </span>
+            <div class="row-main">
+              <span class="meal-label">{{ slot.get_meal_type_display }}{% if slot.locked %} · verrouillé{% endif %}</span>
+              {% if slot.out_of_home %}
+                <span class="row-title">Hors de la maison</span>
+              {% elif slot.recipe %}
+                <a class="row-title" href="{% url 'catalog:detail' slot.recipe.pk %}">{{ slot.recipe.title }}</a>
+                <span class="row-sub">
+                  {{ slot.explanation }}
+                  {% if slot.leftover %}(restes){% endif %}
+                  {% if slot.recipe.cookeo_compatible %}<span class="badge badge--accent">Cookeo</span>{% endif %}
+                </span>
+              {% endif %}
+              <div class="meal-actions">
+                <form method="post" action="{% url 'planner:lock' plan.pk slot.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-collapse" aria-label="{% if slot.locked %}Déverrouiller{% else %}Verrouiller{% endif %} ce repas" title="{% if slot.locked %}Déverrouiller{% else %}Verrouiller{% endif %}">{% if slot.locked %}{% icon "lock" %}{% else %}{% icon "unlock" %}{% endif %}<span class="btn-label">{% if slot.locked %}Déverrouiller{% else %}Verrouiller{% endif %}</span></button>
+                </form>
+                <form method="post" action="{% url 'planner:replace' plan.pk slot.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-collapse" aria-label="Remplacer ce repas" title="Remplacer">{% icon "swap" %}<span class="btn-label">Remplacer</span></button>
+                </form>
+                <form method="post" action="{% url 'planner:out-of-home' plan.pk slot.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-collapse" aria-label="{% if slot.out_of_home %}Remettre ce repas à la maison{% else %}Marquer ce repas hors maison{% endif %}">{% icon "exit" %}<span class="btn-label">{% if slot.out_of_home %}Remettre à la maison{% else %}Hors maison{% endif %}</span></button>
+                </form>
+              </div>
+            </div>
           </li>
         {% endfor %}
       </ul>

@@ -1,23 +1,34 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Convives{% endblock %}
 {% block content %}
-  <h1>Convives</h1>
-  <ul class="list">
-    {% for diner in diners %}
-      <li>
-        <a href="{% url 'households:diner' diner.pk %}">{{ diner.first_name }}</a>
-        ({{ diner.get_age_group_display }}){% if diner.restrictions.all %} — {{ diner.restrictions.all|length }} restriction(s){% endif %}
-      </li>
-    {% empty %}
-      <li>Aucun convive.</li>
-    {% endfor %}
-  </ul>
+  <header class="page-header"><div><h1>Convives</h1><p>Les personnes qui mangent à table, avec ou sans compte.</p></div></header>
+  {% if diners %}
+    <ul class="rows">
+      {% for diner in diners %}
+        <li>
+          <a class="row" href="{% url 'households:diner' diner.pk %}">
+            <span class="avatar" aria-hidden="true">{{ diner.first_name|initial }}</span>
+            <span class="row-main">
+              <span class="row-title">{{ diner.first_name }}</span>
+              <span class="row-sub">{{ diner.get_age_group_display }}{% if diner.restrictions.all %} · {{ diner.restrictions.all|length }} restriction{{ diner.restrictions.all|length|pluralize }}{% endif %}</span>
+            </span>
+            {% icon "chevron" %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% include "components/empty.html" with icon="users" title="Aucun convive" text="Ajoutez les personnes pour qui vous cuisinez : leurs allergies et leurs goûts guident les menus." %}
+  {% endif %}
   {% if request.membership.is_owner %}
-    <h2>Ajouter un convive</h2>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Ajouter</button>
-    </form>
+    <section class="card form-card mt">
+      <h2>Ajouter un convive</h2>
+      <form method="post" class="stack">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit" class="btn btn-primary">{% icon "plus" %}Ajouter</button>
+      </form>
+    </section>
   {% endif %}
 {% endblock %}

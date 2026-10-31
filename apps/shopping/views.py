@@ -34,6 +34,16 @@ def _item(request: HttpRequest, plan_pk, item_pk) -> ShoppingItem:
 
 @require_safe
 @household_required
+def shopping_index(request: HttpRequest) -> HttpResponse:
+    """Entrée « Courses » de la navigation : la liste du menu le plus récent."""
+    plan = MenuPlan.objects.for_household(request.household).first()
+    if plan is None:
+        return render(request, "shopping/empty.html")
+    return redirect("shopping:detail", plan_pk=plan.pk)
+
+
+@require_safe
+@household_required
 def shopping_detail(request: HttpRequest, plan_pk) -> HttpResponse:
     plan = _plan(request, plan_pk)
     shopping_list = services.list_for(plan)
@@ -51,6 +61,7 @@ def shopping_detail(request: HttpRequest, plan_pk) -> HttpResponse:
         "form": ItemForm(),
         "remaining": sum(1 for i in items if not i.checked),
         "total": len(items),
+        "done": len(items) - sum(1 for i in items if not i.checked),
         "csrf_cookie_name": settings.CSRF_COOKIE_NAME,
     }
     return render(request, "shopping/detail.html", context)

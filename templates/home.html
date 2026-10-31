@@ -1,5 +1,61 @@
 {% extends "base.html" %}
+{% load ui %}
+{% block title %}Accueil{% endblock %}
 {% block content %}
-  <h1>Menu du jour</h1>
-  <p>Planificateur de menus et liste de courses.</p>
+  <header class="page-header">
+    <div>
+      <h1>Bonjour {{ user.get_short_name }}</h1>
+      <p>{{ today_date|date:"l j F" }} · {{ household.name }}</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-primary" href="{% url 'planner:new' %}">{% icon "plus" %}Nouveau menu</a>
+    </div>
+  </header>
+
+  {% if not plan %}
+    {% url 'planner:new' as new_menu %}
+    {% include "components/empty.html" with icon="calendar" title="Votre premier menu vous attend" text="Choisissez les jours et les repas : le menu et la liste de courses se calculent en quelques secondes, en respectant allergies et régimes." url=new_menu cta="Créer un menu" %}
+  {% else %}
+    <div class="grid grid--2">
+      <section class="card" aria-labelledby="today-title">
+        <h2 id="today-title">Aujourd'hui</h2>
+        {% if today %}
+          <ul class="rows">
+            {% for slot in today %}
+              <li>{% include "components/meal_row.html" with slot=slot %}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="muted">Rien de prévu aujourd'hui dans ce menu.</p>
+        {% endif %}
+        <p class="mt"><a href="{% url 'planner:detail' plan.pk %}">Voir tout le menu</a></p>
+      </section>
+
+      <section class="card card--accent" aria-labelledby="shop-title">
+        <h2 id="shop-title">Courses</h2>
+        {% if shopping_remaining %}
+          <p><strong>{{ shopping_remaining }}</strong> article{{ shopping_remaining|pluralize }} à acheter pour le menu du {{ plan.start_date|date:"j F" }}.</p>
+        {% else %}
+          <p>Tout est coché pour ce menu, ou la liste est vide.</p>
+        {% endif %}
+        <a class="btn btn-primary" href="{% url 'shopping:detail' plan.pk %}">{% icon "cart" %}Ouvrir la liste</a>
+      </section>
+    </div>
+
+    {% if tomorrow %}
+      <h2 class="section-title">Demain</h2>
+      <ul class="rows">
+        {% for slot in tomorrow %}
+          <li>{% include "components/meal_row.html" with slot=slot %}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+
+  <h2 class="section-title">Raccourcis</h2>
+  <div class="grid">
+    <a class="card card-link" href="{% url 'catalog:list' %}">{% icon "book" %}<h3>Recettes</h3><p class="muted">Chercher, importer, noter vos favorites.</p></a>
+    <a class="card card-link" href="{% url 'households:diners' %}">{% icon "users" %}<h3>Convives</h3><p class="muted">Allergies, régimes et goûts de chacun.</p></a>
+    <a class="card card-link" href="{% url 'households:preferences' %}">{% icon "sliders" %}<h3>Préférences</h3><p class="muted">Temps, budget, jours « restes ».</p></a>
+  </div>
 {% endblock %}

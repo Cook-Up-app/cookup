@@ -45,7 +45,8 @@ def test_list_shows_aisles_quantities_and_origin(ready):
     page = client.get(url("detail", plan)).content.decode()
 
     assert "Fruits et légumes" in page and "Crèmerie" in page
-    assert "courgette — 4" in page and "Gratin de courgettes" in page
+    assert "courgette</span>" in page and "data-qty>4</span>" in page
+    assert "Gratin de courgettes" in page
     assert "à acheter sur" in page
 
 

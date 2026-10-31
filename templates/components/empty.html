@@ -1,0 +1,7 @@
+{% load ui %}
+<div class="empty">
+  {% icon icon|default:"leaf" %}
+  <h2>{{ title }}</h2>
+  {% if text %}<p>{{ text }}</p>{% endif %}
+  {% if url %}<a class="btn btn-primary" href="{{ url }}">{{ cta }}</a>{% endif %}
+</div>

@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base_auth.html" %}
 {% block title %}Créer mon compte{% endblock %}
 {% block content %}
-  <h1>Rejoindre « {{ invitation.household.name }} »</h1>
-  <p>Compte pour <strong>{{ invitation.email }}</strong>. Vous activerez ensuite une passkey ou une application d'authentification.</p>
-  <form method="post">
+  <h1 class="auth-title">Rejoindre « {{ invitation.household.name }} »</h1>
+  <p class="muted">Compte pour <strong>{{ invitation.email }}</strong>. Vous pourrez ensuite activer une passkey ou une application d'authentification.</p>
+  <form method="post" class="stack">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Créer mon compte</button>
+    {{ form }}
+    <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
   </form>
 {% endblock %}

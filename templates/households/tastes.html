@@ -1,12 +1,14 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Goûts de {{ diner.first_name }}{% endblock %}
 {% block content %}
-  <h1>Goûts de {{ diner.first_name }}</h1>
-  <p>Cochez ce qui est aimé ou détesté ; le reste reste neutre.</p>
-  <form method="post">
+  <a class="back-link" href="{% url 'households:diner' diner.pk %}">{% icon "arrow-left" %}{{ diner.first_name }}</a>
+  <header class="page-header"><div><h1>Goûts de {{ diner.first_name }}</h1><p>Touchez ce qui est aimé ou détesté ; le reste reste neutre. Les notes de recettes affinent ensuite ces goûts.</p></div></header>
+  <form method="post" class="form-card stack">
     {% csrf_token %}
-    {{ form.as_p }}
-    {% if request.membership.is_owner %}<button type="submit">Enregistrer</button>{% endif %}
+    {{ form.non_field_errors }}
+    <section class="card">{{ form.likes.as_field_group }}</section>
+    <section class="card">{{ form.dislikes.as_field_group }}</section>
+    {% if request.membership.is_owner %}<div class="sticky-actions"><button type="submit" class="btn btn-primary btn-block">Enregistrer</button></div>{% endif %}
   </form>
-  <p><a href="{% url 'households:diner' diner.pk %}">Retour</a></p>
 {% endblock %}

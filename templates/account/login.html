@@ -1,0 +1,26 @@
+{% extends "account/base_entrance.html" %}
+{% load allauth ui %}
+{% block head_title %}Connexion{% endblock %}
+{% block content %}
+  <h1 class="auth-title">Connexion</h1>
+  <p class="muted">Connectez-vous pour retrouver vos menus et vos courses.</p>
+  <form method="post" action="{% url 'account_login' %}" class="stack">
+    {% csrf_token %}
+    {{ form }}
+    {{ redirect_field }}
+    <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+  </form>
+  {% if PASSKEY_LOGIN_ENABLED %}
+    <hr>
+    <div class="button-stack">
+      <button type="submit" form="mfa_login" id="passkey_login" class="btn btn-block">{% icon "shield" %}Se connecter avec une clé d'accès</button>
+    </div>
+  {% endif %}
+  <p class="mt"><a href="{% url 'account_reset_password' %}">Mot de passe oublié ?</a></p>
+{% endblock content %}
+{% block extra_body %}
+  {{ block.super }}
+  {% if PASSKEY_LOGIN_ENABLED %}
+    {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+  {% endif %}
+{% endblock %}

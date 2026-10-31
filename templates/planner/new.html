@@ -1,11 +1,50 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Nouveau menu{% endblock %}
 {% block content %}
-  <h1>Nouveau menu</h1>
-  <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
-  <form method="post" action="{% url 'planner:generate' %}">
+  <a class="back-link" href="{% url 'planner:list' %}">{% icon "arrow-left" %}Menus</a>
+  <header class="page-header">
+    <div>
+      <h1>Nouveau menu</h1>
+      <p>Choisissez quand, pour qui et avec quoi : le menu et les courses se calculent ensuite.</p>
+    </div>
+  </header>
+  <p class="notice">{% icon "info" %}<span>Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</span></p>
+
+  <form method="post" action="{% url 'planner:generate' %}" class="stack-lg form-card">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Générer le menu</button>
+    {{ form.non_field_errors }}
+    <section class="card">
+      <h2>Quand ?</h2>
+      {{ form.start_date.as_field_group }}
+      {{ form.days.as_field_group }}
+      {{ form.meals.as_field_group }}
+    </section>
+    <section class="card">
+      <h2>Pour qui ?</h2>
+      {{ form.diners.as_field_group }}
+      {{ form.guests.as_field_group }}
+    </section>
+    <section class="card">
+      <h2>Quelle cuisine ?</h2>
+      {{ form.mode.as_field_group }}
+      <div class="field">
+        {{ form.cookeo_share.label_tag }}
+        <div class="cluster">{{ form.cookeo_share }}<output id="id_cookeo_share_value" for="id_cookeo_share"></output></div>
+        <div class="helptext">Utilisée seulement en mode mixte.</div>
+      </div>
+      {{ form.split_cookeo.as_field_group }}
+    </section>
+    <details class="card">
+      <summary><strong>Envies et contraintes du moment</strong></summary>
+      <div class="stack mt">
+        {{ form.quick.as_field_group }}
+        {{ form.without_equipment.as_field_group }}
+        {{ form.wanted_tags.as_field_group }}
+      </div>
+    </details>
+    <div class="sticky-actions">
+      <button type="submit" class="btn btn-primary btn-block">{% icon "calendar" %}Générer le menu</button>
+    </div>
   </form>
 {% endblock %}

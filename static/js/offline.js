@@ -283,9 +283,9 @@
     var operation = Outbox.makeOperation(
       "add", id, { label: label, quantity: quantity, aisle: data.get("aisle") || "misc" }, Date.now()
     );
-    var item = document.createElement("li");
-    item.dataset.item = id;
-    item.textContent = label + (quantity ? " — " + quantity : "") + " (ajouté hors ligne)";
+    var item = document.createElement("p");
+    item.className = "notice";
+    item.textContent = label + (quantity ? " — " + quantity : "") + " (ajouté hors ligne, en attente de synchronisation)";
     form.parentNode.insertBefore(item, form);
     form.reset();
     enqueue(operation);

@@ -22,6 +22,12 @@ class SearchForm(forms.Form):
     cookeo_only = forms.BooleanField(label="Compatible Cookeo", required=False)
 
 
+class StarRating(forms.RadioSelect):
+    """Cinq étoiles en boutons radio (clavier et lecteurs d'écran inclus)."""
+
+    template_name = "forms/star_rating.html"
+
+
 class FeedbackForm(forms.Form):
     """Avis du foyer : note, favori, exclusion (alimente le moteur de menus)."""
 
@@ -30,7 +36,8 @@ class FeedbackForm(forms.Form):
         required=False,
         coerce=int,
         empty_value=None,
-        choices=[("", "Pas de note"), *((str(n), f"{n} / 5") for n in range(1, 6))],
+        choices=[(str(n), f"{n} sur 5") for n in range(1, 6)],
+        widget=StarRating,
     )
     favorite = forms.BooleanField(label="Favori", required=False)
     excluded = forms.BooleanField(label="Ne plus me proposer cette recette", required=False)

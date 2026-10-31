@@ -1,0 +1,21 @@
+<div class="field{% if field.errors %} has-error{% endif %}{% if field.widget_type == 'checkbox' %} field--check{% endif %}">
+  {% if field.widget_type == "checkbox" %}
+    <label class="check" for="{{ field.id_for_label }}">{{ field }}<span>{{ field.label }}</span></label>
+  {% elif field.use_fieldset %}
+    <fieldset{% if field.aria_describedby %} aria-describedby="{{ field.aria_describedby }}"{% endif %}>
+      {% if field.label %}<legend class="field-label">{{ field.label }}</legend>{% endif %}
+      {% if field.help_text %}<div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>{% endif %}
+      {{ field.errors }}
+      {{ field }}
+    </fieldset>
+  {% else %}
+    {% if field.label %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{% endif %}
+    {% if field.help_text %}<div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>{% endif %}
+    {{ field.errors }}
+    {{ field }}
+  {% endif %}
+  {% if field.widget_type == "checkbox" %}
+    {% if field.help_text %}<div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>{% endif %}
+    {{ field.errors }}
+  {% endif %}
+</div>

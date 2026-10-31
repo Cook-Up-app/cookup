@@ -28,7 +28,9 @@ class PlanForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
     guests = forms.IntegerField(label="Invités ponctuels", min_value=0, max_value=20, initial=0)
-    mode = forms.ChoiceField(label="Source des recettes", choices=SOURCE_MODES.choices)
+    mode = forms.ChoiceField(
+        label="Source des recettes", choices=SOURCE_MODES.choices, widget=forms.RadioSelect
+    )
     cookeo_share = forms.IntegerField(
         label="Part de Cookeo (%) en mode mixte",
         min_value=0,

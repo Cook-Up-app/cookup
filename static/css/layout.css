@@ -1,0 +1,274 @@
+/* Gabarit : coque d'application (barre du bas sur mobile, menu latéral sur PC), conteneurs, grilles. */
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.sidebar {
+  display: none;
+}
+
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-4) calc(var(--bottom-nav-height) + var(--s-6) + env(safe-area-inset-bottom));
+}
+
+.page--narrow {
+  max-width: var(--reading-max);
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+
+.page-header p {
+  margin: var(--s-1) 0 0;
+  color: var(--text-muted);
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-bottom: var(--s-3);
+  color: var(--text-muted);
+  text-decoration: none;
+  min-height: var(--tap);
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+/* Barre du bas (mobile et tablette) */
+.bottom-nav {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 30;
+  display: flex;
+  justify-content: space-around;
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  padding: var(--s-1) var(--s-2) env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--tap);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--r-md);
+}
+
+.nav-item .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.nav-item[aria-current="page"] {
+  color: var(--accent-ink);
+}
+
+.nav-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 2rem;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+}
+
+/* Entrées d'écran étroit sans barre latérale : l'en-tête de marque reste discret */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand .icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--accent);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4) 0;
+  max-width: var(--page-max);
+  margin: 0 auto;
+}
+
+/* Grilles */
+.stack > * + * {
+  margin-top: var(--s-4);
+}
+
+.stack-lg > * + * {
+  margin-top: var(--s-6);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.grid {
+  display: grid;
+  gap: var(--s-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+/* Écran d'authentification et d'assistant : une carte centrée */
+.auth {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-5) var(--s-4);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 30rem;
+  padding: var(--s-6) var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.auth-brand {
+  margin-bottom: var(--s-5);
+}
+
+@media (min-width: 640px) {
+  .page {
+    padding-inline: var(--s-6);
+  }
+
+  .auth-card {
+    padding: var(--s-7) var(--s-6);
+  }
+}
+
+/* PC : menu latéral à gauche, plus de barre du bas */
+@media (min-width: 1024px) {
+  .app {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  }
+
+  .bottom-nav {
+    display: none;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    flex-direction: column;
+    gap: var(--s-5);
+    padding: var(--s-5) var(--s-4);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+  }
+
+  .sidebar-group {
+    margin: var(--s-4) 0 var(--s-1);
+    padding-inline: var(--s-3);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .side-link {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: var(--tap);
+    padding: 0 var(--s-3);
+    color: var(--text);
+    text-decoration: none;
+    border-radius: var(--r-md);
+    transition: background var(--ease);
+  }
+
+  .side-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  .side-link[aria-current="page"] {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  .side-link .icon {
+    width: 1.3rem;
+    height: 1.3rem;
+    flex: none;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+  }
+
+  .page {
+    padding: var(--s-7) var(--s-7) var(--s-8);
+  }
+
+  .topbar {
+    display: none;
+  }
+}

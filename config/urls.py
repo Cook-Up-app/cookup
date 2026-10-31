@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.accounts.views import password_reset_disabled
+from apps.core.dev import dev_login
 from apps.households.views import accept_invitation
 
 urlpatterns = [
@@ -25,6 +26,9 @@ urlpatterns = [
     path("deconnexion", LogoutView.as_view(), name="account_logout"),
     path("compte/securite", SecurityView.as_view(), name="mfa_index"),
 ]
+
+if settings.DEV_LOGIN:
+    urlpatterns.append(path("dev/connexion/<str:role>", dev_login, name="dev-login"))
 
 if settings.ADMIN_PATH:
     admin.site.login = secure_admin_login(admin.site.login)

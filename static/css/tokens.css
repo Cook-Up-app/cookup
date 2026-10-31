@@ -1,0 +1,86 @@
+/* Jetons de design : couleurs, espacements, typographie. Seul endroit où l'on écrit une valeur brute.
+   Thème « crème et vert herbe », clair par défaut, sombre selon le système. */
+:root {
+  color-scheme: light dark;
+
+  /* Couleurs (clair) */
+  --bg: #faf6ec;
+  --surface: #fffdf8;
+  --surface-2: #f3eee0;
+  --border: #e2dac6;
+  --border-strong: #8a826e; /* contours de champs : contraste ≥ 3:1 */
+  --text: #2b2a26;
+  --text-muted: #625d51;
+  --accent: #4f7a3a;
+  --accent-strong: #3d6030;
+  --accent-soft: #e6efdd;
+  --accent-ink: #3d6030; /* texte sur fond accent-soft */
+  --on-accent: #ffffff;
+  --danger: #a93c2a;
+  --danger-soft: #f8e4df;
+  --warning: #7a5200;
+  --warning-soft: #faedcb;
+  --focus: #2f5fb3;
+  --overlay: rgb(43 42 38 / 0.45);
+
+  /* Typographie */
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Charter, Georgia, serif;
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --h1: clamp(1.75rem, 1.4rem + 1.6vw, 2.4rem);
+  --h2: clamp(1.3rem, 1.15rem + 0.7vw, 1.6rem);
+  --h3: 1.15rem;
+
+  /* Espacements (pas de 4 px) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4rem;
+
+  /* Formes et profondeur */
+  --r-sm: 0.5rem;
+  --r-md: 0.875rem;
+  --r-lg: 1.25rem;
+  --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(43 42 38 / 0.06), 0 2px 8px rgb(43 42 38 / 0.05);
+  --shadow-2: 0 2px 4px rgb(43 42 38 / 0.08), 0 12px 32px rgb(43 42 38 / 0.1);
+
+  /* Gabarit */
+  --sidebar-width: 15.5rem;
+  --bottom-nav-height: 4.25rem;
+  --page-max: 68rem;
+  --reading-max: 44rem;
+  --tap: 2.75rem; /* cible tactile minimale de 44 px */
+  --ease: 150ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1a16;
+    --surface: #25241f;
+    --surface-2: #2e2c25;
+    --border: #3d3a30;
+    --border-strong: #7d7866;
+    --text: #f1ecdd;
+    --text-muted: #b6b09f;
+    --accent: #8fbf74;
+    --accent-strong: #a8d28f;
+    --accent-soft: #2b3a25;
+    --accent-ink: #8fbf74;
+    --on-accent: #16210f;
+    --danger: #f19a8a;
+    --danger-soft: #3d2420;
+    --warning: #f0c36a;
+    --warning-soft: #3b2f14;
+    --focus: #8fb4f0;
+    --overlay: rgb(0 0 0 / 0.6);
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-2: 0 12px 32px rgb(0 0 0 / 0.5);
+  }
+}

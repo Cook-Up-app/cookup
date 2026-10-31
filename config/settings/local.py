@@ -20,3 +20,5 @@ STORAGES = {
 
 ADMIN_PATH = env_str("ADMIN_PATH", "admin/")
 MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = True  # passkeys sur http://localhost, développement seulement
+
+DEV_LOGIN = True  # route /dev/connexion/<profil> : jamais en production

@@ -92,3 +92,13 @@ def test_sessions_are_not_revoked_by_time():
 
     assert settings.SESSION_COOKIE_AGE >= 365 * 24 * 60 * 60
     assert settings.SESSION_SAVE_EVERY_REQUEST is True
+
+
+def test_dev_login_is_off_in_production_and_refuses_without_the_flag(
+    client, db, production_settings, settings
+):
+    assert production_settings.DEV_LOGIN is False
+    settings.DEV_LOGIN = False
+
+    assert client.get("/dev/connexion/proprietaire", secure=True).status_code == 404
+    assert "_auth_user_id" not in client.session

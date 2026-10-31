@@ -1,49 +1,74 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Foyer{% endblock %}
 {% block content %}
-  <h1>{{ household.name }}</h1>
+  <header class="page-header">
+    <div><h1>{{ household.name }}</h1><p>{{ household.default_servings }} portions par défaut · {{ members|length }} membre{{ members|length|pluralize }}</p></div>
+  </header>
+
+  <div class="grid">
+    <a class="card card-link" href="{% url 'households:diners' %}">{% icon "users" %}<h3>Convives</h3><p class="muted">Qui mange à table, allergies, régimes et goûts.</p></a>
+    <a class="card card-link" href="{% url 'households:equipment' %}">{% icon "pot" %}<h3>Équipements</h3><p class="muted">Four, plaques, Cookeo… ce que vous avez en cuisine.</p></a>
+    <a class="card card-link" href="{% url 'households:preferences' %}">{% icon "sliders" %}<h3>Préférences</h3><p class="muted">Repas, temps, budget, jours « restes ».</p></a>
+    <a class="card card-link" href="{% url 'shopping:pantry' %}">{% icon "box" %}<h3>Placard</h3><p class="muted">Ce que vous avez déjà, exclu des courses.</p></a>
+  </div>
+
   {% if membership.is_owner %}
-    <form method="post" action="{% url 'households:home' %}">
-      {% csrf_token %}
-      {{ household_form.as_p }}
-      <button type="submit">Enregistrer le foyer</button>
-    </form>
+    <section class="card mt form-card">
+      <h2>Réglages du foyer</h2>
+      <form method="post" action="{% url 'households:home' %}" class="stack">
+        {% csrf_token %}
+        {{ household_form }}
+        <button type="submit" class="btn btn-primary">Enregistrer le foyer</button>
+      </form>
+    </section>
   {% endif %}
-  <h2>Membres</h2>
-  <ul class="list">
+
+  <h2 class="section-title">Membres</h2>
+  <ul class="rows">
     {% for member in members %}
-      <li>
-        {{ member.user }} — {{ member.get_role_display }}
+      <li class="row">
+        <span class="avatar" aria-hidden="true">{{ member.user.get_short_name|initial }}</span>
+        <span class="row-main">
+          <span class="row-title">{{ member.user }}</span>
+          <span class="row-sub">{{ member.get_role_display }}</span>
+        </span>
         {% if membership.is_owner and member.pk != membership.pk %}
-          <form method="post" action="{% url 'households:member-reset-link' member.pk %}">
-            {% csrf_token %}<button type="submit">Lien de réinitialisation</button>
-          </form>
-          <form method="post" action="{% url 'households:member-remove' member.pk %}">
-            {% csrf_token %}<button type="submit">Retirer</button>
-          </form>
+          <div class="row-actions">
+            <form method="post" action="{% url 'households:member-reset-link' member.pk %}">
+              {% csrf_token %}<button type="submit" class="btn btn-sm">Lien de réinitialisation</button>
+            </form>
+            <form method="post" action="{% url 'households:member-remove' member.pk %}" data-confirm="Retirer ce membre du foyer ?">
+              {% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Retirer</button>
+            </form>
+          </div>
         {% endif %}
       </li>
     {% endfor %}
   </ul>
+
   {% if membership.is_owner %}
-    <h2>Inviter quelqu'un (facultatif)</h2>
-    <p>Vous pouvez utiliser l'application seul : les invitations ne servent que si d'autres personnes doivent se connecter.</p>
-    <ul class="list">
-      {% for invitation in invitations %}
-        <li>
-          {{ invitation.email }}{% if invitation.expires_at %} — expire le {{ invitation.expires_at|date:"d/m/Y" }}{% endif %}
-          <form method="post" action="{% url 'households:invitation-revoke' invitation.pk %}">
-            {% csrf_token %}<button type="submit">Révoquer</button>
-          </form>
-        </li>
-      {% empty %}
-        <li>Aucune invitation en attente.</li>
-      {% endfor %}
-    </ul>
-    <form method="post" action="{% url 'households:invitation-create' %}">
+    <h2 class="section-title">Inviter quelqu'un (facultatif)</h2>
+    <p class="muted">Vous pouvez utiliser l'application seul : les invitations ne servent que si d'autres personnes doivent se connecter.</p>
+    {% if invitations %}
+      <ul class="rows">
+        {% for invitation in invitations %}
+          <li class="row">
+            <span class="thumb" aria-hidden="true">{% icon "mail" %}</span>
+            <span class="row-main"><span class="row-title">{{ invitation.email }}</span><span class="row-sub">{% if invitation.expires_at %}expire le {{ invitation.expires_at|date:"d/m/Y" }}{% else %}sans date d'expiration{% endif %}</span></span>
+            <form method="post" action="{% url 'households:invitation-revoke' invitation.pk %}">
+              {% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Révoquer</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Aucune invitation en attente.</p>
+    {% endif %}
+    <form method="post" action="{% url 'households:invitation-create' %}" class="card form-card stack mt">
       {% csrf_token %}
-      {{ invitation_form.as_p }}
-      <button type="submit">Générer un lien d'invitation</button>
+      {{ invitation_form }}
+      <button type="submit" class="btn">{% icon "mail" %}Générer un lien d'invitation</button>
     </form>
   {% endif %}
 {% endblock %}

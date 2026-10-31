@@ -7,11 +7,27 @@ from .models import PantryItem
 
 
 class ItemForm(forms.Form):
-    label = forms.CharField(label="Article", max_length=200)
-    quantity = forms.DecimalField(
-        label="Quantité", required=False, min_value=0, max_digits=9, decimal_places=2
+    label = forms.CharField(
+        label="Article",
+        max_length=200,
+        widget=forms.TextInput(
+            attrs={"placeholder": "Ajouter un article…", "aria-label": "Article"}
+        ),
     )
-    aisle = forms.ChoiceField(label="Rayon", choices=Aisle.choices, initial=Aisle.MISC)
+    quantity = forms.DecimalField(
+        label="Quantité",
+        required=False,
+        min_value=0,
+        max_digits=9,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"placeholder": "Quantité", "aria-label": "Quantité"}),
+    )
+    aisle = forms.ChoiceField(
+        label="Rayon",
+        choices=Aisle.choices,
+        initial=Aisle.MISC,
+        widget=forms.Select(attrs={"aria-label": "Rayon"}),
+    )
 
 
 class PantryForm(forms.ModelForm):

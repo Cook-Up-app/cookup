@@ -1,30 +1,38 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Recettes{% endblock %}
 {% block content %}
-  <h1>Recettes</h1>
-  <p>
-    <a href="{% url 'catalog:import' %}">Importer</a> ·
-    <a href="{% url 'catalog:create' %}">Saisir une recette</a>
-  </p>
-  <form method="get" role="search">
-    {{ form.as_p }}
-    <button type="submit">Chercher</button>
+  <header class="page-header">
+    <div><h1>Recettes</h1><p>{{ page.paginator.count }} recette{{ page.paginator.count|pluralize }} dans le catalogue.</p></div>
+    <div class="page-actions">
+      <a class="btn" href="{% url 'catalog:import' %}">{% icon "download" %}Importer</a>
+      <a class="btn btn-primary" href="{% url 'catalog:create' %}">{% icon "plus" %}Saisir une recette</a>
+    </div>
+  </header>
+
+  <form method="get" role="search" class="stack">
+    <div class="field">
+      <label for="{{ form.q.id_for_label }}" class="visually-hidden">Recherche</label>
+      {{ form.q }}
+    </div>
+    <details class="card card--flat">
+      <summary><strong>Filtres</strong></summary>
+      <div class="stack mt">
+        {{ form.max_minutes.as_field_group }}
+        {{ form.meal_type.as_field_group }}
+        {{ form.source.as_field_group }}
+        {{ form.cookeo_only.as_field_group }}
+      </div>
+    </details>
+    <button type="submit" class="btn btn-primary">{% icon "search" %}Chercher</button>
   </form>
-  <ul class="list">
-    {% for recipe in page %}
-      <li>
-        <a href="{% url 'catalog:detail' recipe.pk %}">{{ recipe.title }}</a>
-        — {{ recipe.get_source_display }}{% if recipe.total_minutes %}, {{ recipe.total_minutes }} min{% endif %}{% if recipe.cookeo_compatible %}, Cookeo{% endif %}
-      </li>
-    {% empty %}
-      <li>Aucune recette ne correspond.</li>
-    {% endfor %}
-  </ul>
-  {% if page.has_other_pages %}
-    <nav aria-label="Pagination">
-      {% if page.has_previous %}<a href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}page={{ page.previous_page_number }}">Précédent</a>{% endif %}
-      Page {{ page.number }} / {{ page.paginator.num_pages }}
-      {% if page.has_next %}<a href="?{% for k, v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v|urlencode }}&amp;{% endif %}{% endfor %}page={{ page.next_page_number }}">Suivant</a>{% endif %}
-    </nav>
+
+  {% if page.object_list %}
+    <div class="grid mt">
+      {% for recipe in page %}{% include "components/recipe_card.html" %}{% endfor %}
+    </div>
+    {% include "components/pagination.html" %}
+  {% else %}
+    {% include "components/empty.html" with icon="search" title="Aucune recette ne correspond" text="Essayez d'autres mots, retirez un filtre, ou importez de nouvelles recettes." %}
   {% endif %}
 {% endblock %}

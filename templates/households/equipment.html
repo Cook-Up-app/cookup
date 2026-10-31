@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Équipements{% endblock %}
 {% block content %}
-  <h1>Équipements</h1>
-  <form method="post">
+  <header class="page-header"><div><h1>Équipements</h1><p>Seules les recettes réalisables avec ce que vous avez sont proposées. Le mode Cookeo exige le Cookeo.</p></div></header>
+  <form method="post" class="card form-card stack">
     {% csrf_token %}
-    {{ form.as_p }}
-    {% if request.membership.is_owner %}<button type="submit">Enregistrer</button>{% endif %}
+    {{ form }}
+    {% if request.membership.is_owner %}<button type="submit" class="btn btn-primary">Enregistrer</button>{% endif %}
   </form>
 {% endblock %}

@@ -1,0 +1,14 @@
+{% load ui %}
+<a class="card card-link recipe-card" href="{% url 'catalog:detail' recipe.pk %}">
+  <div class="media">
+    {% if recipe.image_url %}<img src="{{ recipe.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}{% icon "chef" %}{% endif %}
+  </div>
+  <div class="card-body">
+    <h3>{{ recipe.title }}</h3>
+    <div class="meta">
+      {% if recipe.total_minutes %}<span>{% icon "clock" %}{{ recipe.total_minutes }} min</span>{% endif %}
+      <span>{{ recipe.get_source_display }}</span>
+      {% if recipe.cookeo_compatible %}<span class="badge badge--accent">Cookeo</span>{% endif %}
+    </div>
+  </div>
+</a>

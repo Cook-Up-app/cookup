@@ -1,5 +1,6 @@
 """Mode Cookeo (jalon M5) : capacité de la cuve, mode mixte, équipement obligatoire."""
 
+import re
 from datetime import date
 
 import pytest
@@ -201,7 +202,8 @@ def test_new_menu_form_proposes_classic_when_cookeo_is_missing(owner_client, hom
 
     page = owner_client.get(reverse("planner:new")).content.decode()
 
-    assert 'value="classic" selected' in page.replace("\n", " ")
+    assert re.search(r'<input[^>]*value="classic"[^>]*checked', page)
+    assert not re.search(r'<input[^>]*value="cookeo"[^>]*checked', page)
     assert 'type="range"' in page
 
 
@@ -248,7 +250,7 @@ def test_menu_marks_cookeo_meals(owner_client, home):
 
     page = owner_client.get(reverse("planner:detail", args=[plan.pk])).content.decode()
 
-    assert 'class="badge">Cookeo' in page
+    assert 'class="badge badge--accent">Cookeo' in page
 
 
 def test_extra_crisp_is_recorded_for_the_two_recipes_that_use_it(db):

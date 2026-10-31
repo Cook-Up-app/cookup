@@ -1,0 +1,11 @@
+{% extends "_document.html" %}
+{% load ui %}
+{% block body %}
+<div class="auth">
+  <a class="brand auth-brand" href="{% url 'core:home' %}">{% icon "leaf" %}<span>Menu du jour</span></a>
+  <main id="main" class="auth-card{% block card_class %}{% endblock %}" tabindex="-1">
+    {% include "components/messages.html" %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

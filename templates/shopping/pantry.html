@@ -1,21 +1,26 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Placard{% endblock %}
 {% block content %}
-  <h1>Placard</h1>
-  <p>Les produits de base (sel, huile, farine, sucre…) sont déjà considérés comme en stock. Ajoutez ici ce que vous avez en plus, ou un produit de base à racheter (décochez « Toujours en stock »).</p>
-  <ul class="list">
-    {% for item in items %}
-      <li>
-        {{ item.ingredient.name }} — {% if item.always_in_stock %}toujours en stock{% else %}à racheter{% endif %}{% if item.quantity %}, {{ item.quantity|floatformat:"-2" }} {{ item.unit }}{% endif %}
-        <form method="post" action="{% url 'shopping:pantry-remove' item.pk %}">{% csrf_token %}<button type="submit">Retirer</button></form>
-      </li>
-    {% empty %}
-      <li>Rien pour le moment.</li>
-    {% endfor %}
-  </ul>
-  <form method="post">
+  <header class="page-header"><div><h1>Placard</h1><p>Les produits de base (sel, huile, farine, sucre, épices…) sont déjà considérés comme en stock. Ajoutez ici ce que vous avez en plus, ou un produit de base à racheter (décochez « Toujours en stock »).</p></div></header>
+  {% if items %}
+    <ul class="rows">
+      {% for item in items %}
+        <li class="row">
+          <span class="row-main">
+            <span class="row-title">{{ item.ingredient.name }}</span>
+            <span class="row-sub">{% if item.always_in_stock %}toujours en stock{% else %}à racheter{% endif %}{% if item.quantity %} · {{ item.quantity|floatformat:"-2" }} {{ item.unit }}{% endif %}</span>
+          </span>
+          <form method="post" action="{% url 'shopping:pantry-remove' item.pk %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-icon btn-danger" aria-label="Retirer {{ item.ingredient.name }} du placard">{% icon "trash" %}</button></form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Rien pour le moment.</p>
+  {% endif %}
+  <form method="post" class="card form-card stack mt">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Enregistrer</button>
+    {{ form }}
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
   </form>
 {% endblock %}

@@ -1,0 +1,43 @@
+/* Impression de la liste de courses : seulement le contenu, en noir sur blanc. */
+@media print {
+  .sidebar,
+  .bottom-nav,
+  .topbar,
+  .no-print,
+  .skip-link,
+  .btn,
+  button,
+  form,
+  .sticky-add,
+  #sync-status {
+    display: none !important;
+  }
+
+  body {
+    color: #000;
+    background: #fff;
+  }
+
+  .app {
+    display: block;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .card,
+  .rows {
+    border: 0;
+    box-shadow: none;
+  }
+
+  details > summary::after {
+    display: none;
+  }
+
+  .shop-item.done .row-title {
+    text-decoration: line-through;
+  }
+}

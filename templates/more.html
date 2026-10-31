@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Plus{% endblock %}
+{% block content %}
+  <header class="page-header"><h1>Plus</h1></header>
+
+  <h2 class="section-title">Mon foyer</h2>
+  <ul class="rows">
+    {% for item in nav_household %}
+      <li><a class="row" href="{{ item.url }}">{% icon item.icon %}<span class="row-main"><span class="row-title">{{ item.label }}</span></span>{% icon "chevron" %}</a></li>
+    {% endfor %}
+  </ul>
+
+  <h2 class="section-title">Compte</h2>
+  <ul class="rows">
+    {% for item in nav_account %}
+      <li><a class="row" href="{{ item.url }}">{% icon item.icon %}<span class="row-main"><span class="row-title">{{ item.label }}</span><span class="row-sub">Passkey, application d'authentification, codes de récupération</span></span>{% icon "chevron" %}</a></li>
+    {% endfor %}
+    <li class="row">
+      {% icon "logout" %}
+      <form method="post" action="{% url 'account_logout' %}" class="row-main">
+        {% csrf_token %}
+        <button type="submit" class="link-button">Se déconnecter</button>
+      </form>
+    </li>
+  </ul>
+{% endblock %}

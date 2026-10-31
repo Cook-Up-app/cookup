@@ -1,19 +1,22 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block title %}Importer une recette{% endblock %}
 {% block content %}
-  <h1>Importer une recette</h1>
-  <p>Collez l'adresse d'une recette d'un site autorisé. L'import automatique hebdomadaire n'a pas besoin de cette page.</p>
-  <form method="post">
+  <a class="back-link" href="{% url 'catalog:list' %}">{% icon "arrow-left" %}Recettes</a>
+  <header class="page-header"><div><h1>Importer une recette</h1><p>Collez l'adresse d'une recette d'un site autorisé. L'import automatique hebdomadaire n'a pas besoin de cette page.</p></div></header>
+  <form method="post" class="card form-card stack">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Importer</button>
+    {{ form }}
+    <button type="submit" class="btn btn-primary">{% icon "download" %}Importer</button>
   </form>
-  <h2>Derniers imports</h2>
-  <ul class="list">
-    {% for job in recent %}
-      <li>{{ job.get_status_display }} — {{ job.target }}{% if job.error %} ({{ job.error }}){% endif %}</li>
-    {% empty %}
-      <li>Aucun import.</li>
-    {% endfor %}
-  </ul>
+  <h2 class="section-title">Derniers imports</h2>
+  {% if recent %}
+    <ul class="rows">
+      {% for job in recent %}
+        <li class="row"><span class="row-main"><span class="row-title">{{ job.target }}</span><span class="row-sub">{{ job.get_status_display }}{% if job.error %} — {{ job.error }}{% endif %}</span></span></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Aucun import pour le moment.</p>
+  {% endif %}
 {% endblock %}

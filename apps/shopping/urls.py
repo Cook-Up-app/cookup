@@ -5,6 +5,7 @@ from . import views
 app_name = "shopping"
 
 urlpatterns = [
+    path("courses/", views.shopping_index, name="index"),
     path("courses/rayons", views.aisle_order, name="aisles"),
     path("courses/<uuid:plan_pk>/", views.shopping_detail, name="detail"),
     path("courses/<uuid:plan_pk>/regenerer", views.shopping_regenerate, name="regenerate"),

@@ -39,3 +39,9 @@ Vérification du 2026-10-31, avec le `User-Agent` `CookupRecipeCheck/0.1 (… co
 - **Cadence** : cron Vercel le lundi 04:00 (un lot d'environ 40 s) ; workflow GitHub facultatif le lundi 05:00 pour vider la file par lots successifs. Quota : 40 nouvelles recettes par semaine (`SOURCE_IMPORT_WEEKLY_QUOTA`).
 - **Activation** : `SOURCE_MARMITON_ENABLED=true` et `SOURCES_CONTACT` renseignés dans Vercel. Désactivable à tout moment.
 - **Moulinex** : aucun adaptateur en M2. Les conditions du Groupe SEB (lues plus haut) restent un point d'attention ; décision en M5 avec le propriétaire.
+
+## Mise en œuvre M5 : moulinex.fr (désactivé par défaut)
+
+- **Découverte** : la recherche de moulinex.fr est interdite par robots.txt ; on lit donc le sitemap `Recipe-fr_fr-EUR.xml` (déclaré dans robots.txt, plus de 13 000 recettes). Un seul début de fichier est lu (400 Ko, une requête) et 15 adresses sont tirées au sort chaque semaine, de façon reproductible.
+- **Contenu conservé** : ingrédients, durée, portions, lien vers la page d'origine. **Ni étapes ni images**, par prudence vis-à-vis des conditions du Groupe SEB (« toute reproduction, représentation, adaptation, [...] réutilisation totale ou partielle du Site et/ou des Contenus »). Seules les pages françaises sont retenues ; une recette est marquée Cookeo si son titre, ses étiquettes ou ses étapes le mentionnent.
+- **Activation explicite** : `SOURCE_MOULINEX_ENABLED=true` ; sans cela le domaine n'est même pas dans la liste autorisée et aucune requête ne part. À activer seulement après décision du propriétaire sur le risque décrit plus haut.

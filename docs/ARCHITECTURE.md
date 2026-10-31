@@ -9,6 +9,15 @@ Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`),
 - Sécurité : CSP native Django 6.1 (`SECURE_CSP`, sans `unsafe-inline`/`unsafe-eval`), `X-Frame-Options`, `Referrer-Policy`, `nosniff`.
 - `vercel.json` : région `cdg1`, `maxDuration` 60 s (Hobby : 300 s max, vérifié), cron quotidien 05:00.
 
+## État après M5
+
+- **Mode Cookeo** : un créneau est « Cookeo » ou « Classique » (mode mixte : part exacte tirée de façon reproductible) ; une recette Cookeo exige l'équipement du foyer et ne peut remplir qu'un créneau Cookeo, et réciproquement. Un seul plat principal par créneau, donc une seule préparation Cookeo à la fois.
+- **Capacité** : cuve de 6 L = 6 portions (restes compris). Au-delà, le formulaire avertit et propose de **scinder la cuisson** ; avec l'option, l'explication du repas indique « à cuire en N fois ».
+- **Équipement obligatoire** : les modes Cookeo et mixte sont refusés sans l'équipement, dans le formulaire de menu, les réglages et le service (`CookeoUnavailable`) ; le formulaire propose Classique si l'équipement a disparu.
+- **Fiche recette** : bandeau avec programme, minutes sous pression et usage du couvercle Extra Crisp (`cookeo_program`) ; « programme non précisé par la source » pour une recette importée.
+- **moulinex.fr** : adaptateur par sitemap, contenu minimal, désactivé par défaut (voir `docs/sources.md`). La récupération sait désormais ne lire que le début d'un document volumineux.
+- **Écarts** : pas d'envoi vers l'appareil (jamais prévu) ; le « mode mixte » s'ajuste avec un curseur de 0 à 100 %.
+
 ## État après M4
 
 - **Calcul** (`apps/shopping/aggregation.py`, fonctions pures) : mise à l'échelle des portions réellement cuisinées (restes compris, comptés une seule fois), somme par ingrédient canonique et unité de base (g, ml, pièce), fusion masse/volume par la densité quand elle est connue (sinon deux lignes), retrait du placard, arrondi à une quantité achetable (pièces entières, 50 g pour la viande, 10 g ou 10 ml sinon, nombre de conditionnements), ingrédients facultatifs signalés, recettes d'origine conservées. Les cas chiffrés de la spec (60 ml d'huile, 1,5 oignon arrondi à 2) sont des tests.

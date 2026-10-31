@@ -28,6 +28,7 @@ PUBLIC_URL_NAMES = frozenset(
         "accept-invitation",
         "health",
         "cron-daily",
+        "cron-import",
     }
 )
 

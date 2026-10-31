@@ -1,7 +1,7 @@
 # `uv --env-file` charge .env (guillemets acceptés) ; sans .env, les variables du shell s'appliquent.
 RUN = uv run $(if $(wildcard .env),--env-file .env,)
 
-.PHONY: dev test lint format migrate db-up db-down audit check
+.PHONY: dev test lint format migrate seed db-up db-down audit check
 
 db-up:
 	docker compose up -d db
@@ -26,6 +26,10 @@ format:
 # Migrations via DATABASE_DIRECT_URL (connexion directe ou pooler session), jamais le pooler transactionnel.
 migrate:
 	USE_DIRECT_DATABASE=1 $(RUN) python manage.py migrate
+
+# Ingrédients et recettes du jeu de départ (idempotent) ; DATABASE_DIRECT_URL pour Supabase.
+seed:
+	USE_DIRECT_DATABASE=1 $(RUN) python manage.py seed_catalog
 
 audit:
 	uv run pip-audit

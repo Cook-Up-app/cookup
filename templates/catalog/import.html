@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Importer une recette{% endblock %}
+{% block content %}
+  <h1>Importer une recette</h1>
+  <p>Collez l'adresse d'une recette d'un site autorisé. L'import automatique hebdomadaire n'a pas besoin de cette page.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Importer</button>
+  </form>
+  <h2>Derniers imports</h2>
+  <ul class="list">
+    {% for job in recent %}
+      <li>{{ job.get_status_display }} — {{ job.target }}{% if job.error %} ({{ job.error }}){% endif %}</li>
+    {% empty %}
+      <li>Aucun import.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

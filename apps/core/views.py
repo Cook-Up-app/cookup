@@ -6,6 +6,8 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_safe
 
+from apps.sources.weekly import run_weekly_import
+
 from . import services
 
 BEARER_PREFIX = "Bearer "
@@ -44,3 +46,11 @@ def cron_daily(request: HttpRequest) -> JsonResponse:
     except DatabaseError:
         return JsonResponse({"status": "error"}, status=503)
     return JsonResponse({"status": "ok"})
+
+
+@require_GET
+def cron_import(request: HttpRequest) -> JsonResponse:
+    """Import hebdomadaire de recettes (Vercel Cron) ; peut être rappelé pour vider la file."""
+    if not _is_authorized_cron(request):
+        return JsonResponse({"detail": "Non autorisé."}, status=401)
+    return JsonResponse(run_weekly_import())

@@ -1,0 +1,35 @@
+name: Import hebdomadaire de recettes
+
+# Vide la file d'import en appelant l'endpoint protégé par lots (un lot = environ 40 s).
+# Facultatif : sans les secrets, le cron Vercel du lundi traite déjà un premier lot.
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Appeler l'import par lots
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Secrets APP_URL / CRON_SECRET absents : étape ignorée."
+            exit 0
+          fi
+          for attempt in $(seq 1 15); do
+            response=$(curl -fsS --max-time 90 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/internal/cron/import")
+            echo "Lot $attempt : $(echo "$response" | jq -c 'del(.detail)')"
+            status=$(echo "$response" | jq -r '.status')
+            remaining=$(echo "$response" | jq -r '.remaining // 0')
+            if [ "$status" != "ok" ] || [ "$remaining" -eq 0 ]; then
+              break
+            fi
+            sleep 5
+          done

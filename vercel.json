@@ -3,5 +3,8 @@
   "framework": "django",
   "regions": ["cdg1"],
   "functions": { "config/wsgi.py": { "maxDuration": 60 } },
-  "crons": [{ "path": "/internal/cron/daily", "schedule": "0 5 * * *" }]
+  "crons": [
+    { "path": "/internal/cron/daily", "schedule": "0 5 * * *" },
+    { "path": "/internal/cron/import", "schedule": "0 4 * * 1" }
+  ]
 }

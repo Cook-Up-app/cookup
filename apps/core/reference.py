@@ -43,3 +43,37 @@ class Equipment(models.TextChoices):
     FOOD_PROCESSOR = "food_processor", _("Robot de cuisine")
     AIR_FRYER = "air_fryer", _("Friteuse à air")
     DUTCH_OVEN = "dutch_oven", _("Cocotte")
+
+
+class Aisle(models.TextChoices):
+    """Rayons, dans l'ordre d'un parcours de magasin type (SPEC section 8)."""
+
+    FRUITS_VEGETABLES = "fruits_vegetables", _("Fruits et légumes")
+    BUTCHER_FISH = "butcher_fish", _("Boucherie et poissonnerie")
+    DAIRY = "dairy", _("Crèmerie")
+    BAKERY = "bakery", _("Boulangerie")
+    SAVORY_GROCERY = "savory_grocery", _("Épicerie salée")
+    SWEET_GROCERY = "sweet_grocery", _("Épicerie sucrée")
+    CONDIMENTS_SPICES = "condiments_spices", _("Condiments et épices")
+    FROZEN = "frozen", _("Surgelés")
+    DRINKS = "drinks", _("Boissons")
+    MISC = "misc", _("Divers")
+
+
+class MealType(models.TextChoices):
+    BREAKFAST = "breakfast", _("Petit-déjeuner")
+    LUNCH = "lunch", _("Déjeuner")
+    DINNER = "dinner", _("Dîner")
+    SNACK = "snack", _("Collation")
+    DESSERT = "dessert", _("Dessert")
+
+
+class RecipeSource(models.TextChoices):
+    """Clés des sources de recettes (voir `apps.sources`)."""
+
+    URL_IMPORT = "url_import", _("Import par URL")
+    MARMITON = "marmiton", _("Marmiton")
+    MOULINEX = "moulinex", _("Moulinex")
+    MANUAL = "manual", _("Saisie manuelle")
+    AI = "ai", _("Générée par IA")
+    STARTER = "starter", _("Recette originale du jeu de départ")

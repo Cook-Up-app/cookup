@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.households",
+    "apps.catalog",
+    "apps.sources",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -174,3 +176,17 @@ LOGGING = {
 
 # 0 = les invitations n'expirent pas (usage unique et révocation manuelle restent en vigueur).
 INVITATION_TTL_DAYS = env_int("INVITATION_TTL_DAYS", 0)
+
+# Sources de recettes : User-Agent honnête avec contact (obligatoire pour sortir sur le réseau).
+SOURCES_CONTACT = env_str("SOURCES_CONTACT")
+SOURCES_USER_AGENT = (
+    f"CookupBot/0.1 (+https://cookup-nine.vercel.app; contact: {SOURCES_CONTACT})"
+    if SOURCES_CONTACT
+    else "CookupBot/0.1"
+)
+SOURCES_ALLOWED_DOMAINS = frozenset(env_list("SOURCES_ALLOWED_DOMAINS", ("marmiton.org",)))
+SOURCE_MARMITON_ENABLED = env_bool("SOURCE_MARMITON_ENABLED", False)
+SOURCE_MOULINEX_ENABLED = env_bool("SOURCE_MOULINEX_ENABLED", False)
+SOURCE_IMPORT_WEEKLY_QUOTA = env_int("SOURCE_IMPORT_WEEKLY_QUOTA", 40)  # recettes par semaine
+SOURCE_QUERIES_PER_WEEK = env_int("SOURCE_QUERIES_PER_WEEK", 4)  # recherches par semaine
+SOURCE_BATCH_SECONDS = env_int("SOURCE_BATCH_SECONDS", 40)  # temps de traitement par invocation

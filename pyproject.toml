@@ -11,6 +11,9 @@ dependencies = [
     "dj-database-url>=3.1,<4",
     "django-allauth[mfa]>=65.0,<66",
     "argon2-cffi>=25.1",
+    "protego>=0.4",
+    "nh3>=0.3",
+    "recipe-scrapers>=15.12,<16",
 ]
 
 [dependency-groups]
@@ -48,4 +51,6 @@ select = ["E", "F", "W", "I", "B", "UP", "C90", "S", "SIM", "DJ"]
 max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
+"apps/catalog/ingredient_catalog.py" = ["E501"]
+"apps/catalog/starter_data.py" = ["E501"]
 "tests/**" = ["S101", "S105", "S106"]

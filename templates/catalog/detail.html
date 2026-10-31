@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ recipe.title }}{% endblock %}
+{% block content %}
+  <h1>{{ recipe.title }}</h1>
+  <p>
+    {{ recipe.servings }} portions
+    {% if recipe.prep_minutes %}· préparation {{ recipe.prep_minutes }} min{% endif %}
+    {% if recipe.cook_minutes %}· cuisson {{ recipe.cook_minutes }} min{% endif %}
+    {% if recipe.cookeo_compatible %}· compatible Cookeo{% endif %}
+  </p>
+  {% if recipe.url %}
+    <p>Source : <a href="{{ recipe.url }}" rel="noopener noreferrer nofollow">{{ recipe.get_source_display }}</a> (recette originale sur le site d'origine)</p>
+  {% else %}
+    <p>Source : {{ recipe.get_source_display }}</p>
+  {% endif %}
+  {% if allergens %}<p><strong>Allergènes détectés :</strong> {{ allergens|join:", " }}</p>{% endif %}
+  {% if allergens_uncertain or recipe.needs_review %}
+    <p class="notice">Certains ingrédients n'ont pas pu être reconnus avec certitude : vérifiez les allergènes vous-même.</p>
+  {% endif %}
+  <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
+  <h2>Ingrédients</h2>
+  <ul class="list">
+    {% for line in recipe.ingredients.all %}
+      <li>{{ line.raw_text }}{% if line.is_optional %} (facultatif){% endif %}{% if line.needs_review %} <em>(à vérifier)</em>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  <h2>Étapes</h2>
+  <ol>
+    {% for step in recipe.steps %}<li>{{ step }}</li>{% endfor %}
+  </ol>
+{% endblock %}

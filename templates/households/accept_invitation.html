@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Créer mon compte{% endblock %}
+{% block content %}
+  <h1>Rejoindre « {{ invitation.household.name }} »</h1>
+  <p>Compte pour <strong>{{ invitation.email }}</strong>. Vous activerez ensuite une passkey ou une application d'authentification.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Créer mon compte</button>
+  </form>
+{% endblock %}

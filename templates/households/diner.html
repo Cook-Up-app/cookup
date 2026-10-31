@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ diner.first_name }}{% endblock %}
+{% block content %}
+  <h1>{{ diner.first_name }}</h1>
+  <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
+  <h2>Allergies, intolérances et aliments évités</h2>
+  <ul class="list">
+    {% for restriction in diner.restrictions.all %}
+      <li>
+        {{ restriction.get_severity_display }} : {% if restriction.allergen %}{{ restriction.get_allergen_display }}{% else %}{{ restriction.ingredient_name }}{% endif %}
+        {% if request.membership.is_owner %}
+          <form method="post" action="{% url 'households:restriction-delete' restriction.pk %}">
+            {% csrf_token %}<button type="submit">Supprimer</button>
+          </form>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>Aucune restriction.</li>
+    {% endfor %}
+  </ul>
+  {% if request.membership.is_owner %}
+    <form method="post" action="{% url 'households:restriction-add' diner.pk %}">
+      {% csrf_token %}
+      {{ restriction_form.as_p }}
+      <button type="submit">Ajouter la restriction</button>
+    </form>
+    <h2>Profil</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Enregistrer</button>
+    </form>
+    <form method="post" action="{% url 'households:diner-delete' diner.pk %}">
+      {% csrf_token %}<button type="submit">Supprimer ce convive</button>
+    </form>
+  {% endif %}
+{% endblock %}

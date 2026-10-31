@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Foyer{% endblock %}
+{% block content %}
+  <h1>{{ household.name }}</h1>
+  <h2>Membres</h2>
+  <ul class="list">
+    {% for member in members %}
+      <li>
+        {{ member.user }} — {{ member.get_role_display }}
+        {% if membership.is_owner and member.pk != membership.pk %}
+          <form method="post" action="{% url 'households:member-reset-link' member.pk %}">
+            {% csrf_token %}<button type="submit">Lien de réinitialisation</button>
+          </form>
+          <form method="post" action="{% url 'households:member-remove' member.pk %}">
+            {% csrf_token %}<button type="submit">Retirer</button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% if membership.is_owner %}
+    <h2>Invitations</h2>
+    <ul class="list">
+      {% for invitation in invitations %}
+        <li>
+          {{ invitation.email }} — expire le {{ invitation.expires_at|date:"d/m/Y" }}
+          <form method="post" action="{% url 'households:invitation-revoke' invitation.pk %}">
+            {% csrf_token %}<button type="submit">Révoquer</button>
+          </form>
+        </li>
+      {% empty %}
+        <li>Aucune invitation en attente.</li>
+      {% endfor %}
+    </ul>
+    <form method="post" action="{% url 'households:invitation-create' %}">
+      {% csrf_token %}
+      {{ invitation_form.as_p }}
+      <button type="submit">Générer un lien d'invitation</button>
+    </form>
+  {% endif %}
+{% endblock %}

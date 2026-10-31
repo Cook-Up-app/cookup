@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Convives{% endblock %}
+{% block content %}
+  <h1>Convives</h1>
+  <ul class="list">
+    {% for diner in diners %}
+      <li>
+        <a href="{% url 'households:diner' diner.pk %}">{{ diner.first_name }}</a>
+        ({{ diner.get_age_group_display }}){% if diner.restrictions.all %} — {{ diner.restrictions.all|length }} restriction(s){% endif %}
+      </li>
+    {% empty %}
+      <li>Aucun convive.</li>
+    {% endfor %}
+  </ul>
+  {% if request.membership.is_owner %}
+    <h2>Ajouter un convive</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Ajouter</button>
+    </form>
+  {% endif %}
+{% endblock %}

@@ -123,7 +123,7 @@ def test_vegetarian_diner_gets_no_meat_or_fish(home):
 def test_cookeo_mode_needs_cookeo_equipment_and_only_uses_cookeo_recipes(home):
     Diner.objects.create(household=home, first_name="Léa")
     request_ = request(home, mode="cookeo", end_date=TODAY + timedelta(days=3))
-    with pytest.raises(NotEnoughCandidates):
+    with pytest.raises(services.CookeoUnavailable):
         services.create_plan(home, request_, TODAY, seed=1)
 
     HouseholdEquipment.objects.create(household=home, equipment_id="cookeo_yy5449fb")

@@ -24,7 +24,7 @@ class FakeTransport:
         self.pages = pages or {}
         self.requested: list[str] = []
 
-    def get(self, url: str, headers: dict[str, str]) -> RawResponse:
+    def get(self, url: str, headers: dict[str, str], *args, **kwargs) -> RawResponse:
         self.requested.append(url)
         if url in self.pages:
             return self.pages[url]

@@ -3,6 +3,7 @@ from datetime import timedelta
 import pytest
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape
 
 from apps.catalog.models import Ingredient, Recipe
 from apps.core.reference import Allergen
@@ -78,7 +79,7 @@ def test_detail_shows_explanations_and_actions(ready):
     page = client.get(reverse("planner:detail", args=[plan.pk])).content.decode()
 
     assert "Verrouiller" in page and "Remplacer" in page and "Hors maison" in page
-    assert plan.slots.first().recipe.title in page
+    assert escape(plan.slots.first().recipe.title) in page  # le HTML échappe apostrophes et \&
 
 
 def test_simple_member_without_mfa_can_plan_menus(client, ready):

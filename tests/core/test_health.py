@@ -8,7 +8,7 @@ def test_health_ok(client):
     response = client.get(reverse("core:health"))
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "up"}
+    assert response.json() == {"status": "ok", "database": "up", "keepalive": "never"}
 
 
 def test_health_degraded_when_database_down(client, monkeypatch):

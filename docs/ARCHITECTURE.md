@@ -9,6 +9,14 @@ Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`),
 - Sécurité : CSP native Django 6.1 (`SECURE_CSP`, sans `unsafe-inline`/`unsafe-eval`), `X-Frame-Options`, `Referrer-Policy`, `nosniff`.
 - `vercel.json` : région `cdg1`, `maxDuration` 60 s (Hobby : 300 s max, vérifié), cron quotidien 05:00.
 
+## État après M4
+
+- **Calcul** (`apps/shopping/aggregation.py`, fonctions pures) : mise à l'échelle des portions réellement cuisinées (restes compris, comptés une seule fois), somme par ingrédient canonique et unité de base (g, ml, pièce), fusion masse/volume par la densité quand elle est connue (sinon deux lignes), retrait du placard, arrondi à une quantité achetable (pièces entières, 50 g pour la viande, 10 g ou 10 ml sinon, nombre de conditionnements), ingrédients facultatifs signalés, recettes d'origine conservées. Les cas chiffrés de la spec (60 ml d'huile, 1,5 oignon arrondi à 2) sont des tests.
+- **Régénération sans perte** (`services.sync_list`) : chaque ligne calculée a une clé stable (`ing:<id>:<unité>` ou texte replié) ; au recalcul, les lignes restantes gardent leur case cochée, les lignes disparues sont retirées, les lignes retirées à la main restent masquées, les lignes manuelles ne sont jamais touchées. La liste se remet d'elle-même à jour quand l'empreinte du menu change.
+- **Placard** (`PantryItem`) : les produits de base du catalogue sont réputés en stock ; le foyer peut en racheter (« toujours en stock » décoché) ou déduire une quantité.
+- **Rayons** : ordre par défaut d'un parcours de magasin, réordonnable et mémorisé par foyer (`HouseholdSettings.aisle_order`).
+- **Écarts** : cases à cocher en formulaires avec rechargement (pas de HTMX) ; hors ligne, export et partage relèvent de M6.
+
 ## État après M3
 
 - **Moteur** (`apps/planner/engine/`, Python pur, sans Django) : `rules` (contraintes dures, une fonction par règle, registre `RULES`), `criteria` (7 critères de score enregistrés : goûts 30, notes 15, fraîcheur 20, diversité 15, anti-gaspillage 10, budget 5, saison 5), `selection` (créneaux les plus contraints d'abord, tirage softmax reproductible par graine, 200 essais d'amélioration), `planning` (mode Cookeo/mixte par créneau, jours « restes »), `failure` (rapport chiffré des contraintes qui bloquent).

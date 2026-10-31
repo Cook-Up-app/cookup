@@ -30,6 +30,15 @@ USE_DIRECT_DATABASE=1 uv run --env-file .env python manage.py createsuperuser
 
 Connectez-vous sur `/connexion` et activez une passkey ou un TOTP sur `/compte/securite` (obligatoire pour les administrateurs). Le foyer « Mon foyer » (4 portions) est créé automatiquement. Inviter d'autres personnes est facultatif : le lien d'invitation est affiché une seule fois et n'expire pas. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
 
+## Mise à jour après M4
+
+```bash
+make migrate   # listes de courses, placard, conditionnements, ordre des rayons
+make seed      # conditionnements, densités et produits de base du catalogue (idempotent)
+```
+
+Les courses s'ouvrent depuis un menu (`/courses/<menu>/`) ; le placard est sur `/foyer/placard/`.
+
 ## Mise à jour après M3
 
 ```bash

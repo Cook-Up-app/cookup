@@ -67,6 +67,7 @@ UNITS: tuple[Unit, ...] = (
     _unit("bouquet", UnitKind.COUNT, "1", "bouquet", "bouquets"),
     _unit("morceau", UnitKind.COUNT, "1", "morceau", "morceaux"),
     _unit("cube", UnitKind.COUNT, "1", "cube", "cubes"),
+    _unit("rouleau", UnitKind.COUNT, "1", "rouleau", "rouleaux"),
     _unit("pincée", UnitKind.UNCOUNTED, "1", "pincee", "pincees"),
     _unit("noix", UnitKind.UNCOUNTED, "1", "noix"),
     _unit("filet", UnitKind.UNCOUNTED, "1", "filet", "filets"),

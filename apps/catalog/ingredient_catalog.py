@@ -134,7 +134,7 @@ fromage blanc|D|mi||faisselle
 fromage râpé|D|mi||emmental râpé;gruyère râpé;gruyère;emmental;comté;fromage
 parmesan|D|mi||parmigiano
 mozzarella|D|mi
-fromage de chèvre|D|mi||chèvre;bûche de chèvre;chèvre frais
+fromage de chèvre|D|mi||chèvre;chèvres;bûche de chèvre;chèvres bûche;chèvre bûche;chèvre frais
 feta|D|mi
 ricotta|D|mi
 mascarpone|D|mi
@@ -197,6 +197,7 @@ pistaches|W|tn||pistache
 pignons de pin|W|tn||pignons
 cacahuètes|W|pe||cacahuète;arachides;cacahuètes salées
 beurre de cacahuète|W|pe||beurre de cacahuètes
+pruneaux|W||u|pruneau;pruneaux d'Agen;pruneaux dénoyautés
 raisins secs|W|su||raisin sec;raisins de Corinthe
 abricots secs|W|su||abricot sec
 noix de coco râpée|W|||noix de coco;coco râpée

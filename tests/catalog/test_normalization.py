@@ -128,3 +128,29 @@ def test_partial_match_with_unknown_word_is_flagged_for_review(index):
 
 def test_unknown_ingredient_is_not_guessed(index):
     assert index.find("pierre de lune") is None
+
+
+@pytest.mark.parametrize(
+    ("line", "unit", "canonical"),
+    [  # lignes observées sur de vraies pages de recettes
+        ("1 rouleau de pâtes feuilletées", "rouleau", "pâte feuilletée"),
+        ("0,5 Boursin ail et fine herbe", None, "fromage frais"),
+        ("250 g de pruneaux dénoyautés", "g", "pruneaux"),
+        ("1 chèvres bûche", None, "fromage de chèvre"),
+    ],
+)
+def test_real_world_lines_are_matched_to_the_right_ingredient(index, line, unit, canonical):
+    parsed = parse_line(line)
+    names = {i: e["name"] for i, e in enumerate(parse_catalog())}
+
+    match = index.find(parsed.name)
+
+    assert (parsed.unit.code if parsed.unit else None) == unit
+    assert match is not None and names[match.ingredient_id] == canonical
+
+
+def test_leftmost_entry_wins_when_two_have_the_same_length(index):
+    names = {i: e["name"] for i, e in enumerate(parse_catalog())}
+
+    assert names[index.find("boursin ail").ingredient_id] == "fromage frais"
+    assert names[index.find("ail boursin").ingredient_id] == "ail"

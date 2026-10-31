@@ -76,6 +76,14 @@ def source_ref_of(url: str) -> str:
     return f"{parts.netloc}{parts.path}"[:300]
 
 
+_TITLE_SUFFIX = re.compile(r"\s*:\s*la meilleure recette\s*$", re.IGNORECASE)
+
+
+def _clean_title(raw: str) -> str:
+    """Retire le slogan que Marmiton ajoute à tous ses titres."""
+    return _TITLE_SUFFIX.sub("", clean_text(raw)).strip()
+
+
 def parse_recipe_html(page: str, url: str, source: str) -> RecipeDTO:
     """Lève `ParseFailed` si la page n'expose pas de recette exploitable."""
     from recipe_scrapers import scrape_html
@@ -83,7 +91,7 @@ def parse_recipe_html(page: str, url: str, source: str) -> RecipeDTO:
 
     try:
         scraper = scrape_html(page, org_url=url, wild_mode=True)
-        title = clean_text(scraper.title())
+        title = _clean_title(scraper.title())
         ingredients = [clean_text(line) for line in scraper.ingredients()]
         steps = [clean_text(step) for step in scraper.instructions_list()]
     except RecipeScrapersExceptions as error:

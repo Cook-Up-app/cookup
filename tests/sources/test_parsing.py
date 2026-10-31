@@ -65,3 +65,9 @@ def test_recipe_without_ingredients_is_rejected():
 
 def test_clean_text_removes_markup_and_decodes_entities():
     assert clean_text("<p>a &amp; <i>b</i></p>") == "a & b"
+
+
+def test_marmiton_title_slogan_is_removed():
+    page = recipe_page(title="Tarte salée au Boursin : la meilleure recette")
+
+    assert parse_recipe_html(page, URL, "marmiton").title == "Tarte salée au Boursin"

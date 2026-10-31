@@ -11,7 +11,7 @@ HARMLESS_DESCRIPTORS = frozenset(
         "morceau", "petit", "gros", "grosse", "moyen", "bio", "doux", "cru", "cuit", "cuite",
         "mur", "mure", "ferme", "fondu", "ramolli", "tamise", "pele", "epluche", "lave",
         "sec", "seche", "liquide", "fin", "fine", "nature", "maison", "vieux", "jeune",
-        "concasse", "egoutte", "decongele", "surgele", "taille", "en", "cube",
+        "concasse", "egoutte", "denoyaute", "decongele", "surgele", "taille", "en", "cube",
         "lamelle", "rondelle", "tranche", "selon", "gout", "besoin", "environ", "bien",
         "vert", "verte", "rouge", "jaune", "blanc", "blanche", "noir", "noire", "gris",
     }
@@ -43,14 +43,23 @@ class IngredientIndex:
         return self._find_contained(key.split())
 
     def _find_contained(self, words: list[str]) -> Match | None:
+        """Entrée la plus longue ; à longueur égale, la plus à gauche (« boursin ail »)."""
+        best: tuple[int, int, str] | None = None  # (mots, -position, clé)
         for candidate in self._by_length:
             span = candidate.split()
+            if best is not None and len(span) < best[0]:
+                break
             for start in range(len(words) - len(span) + 1):
                 if words[start : start + len(span)] == span:
-                    rest = words[:start] + words[start + len(span) :]
-                    harmless = all(_is_harmless(word) for word in rest)
-                    return Match(self._exact[candidate], exact=harmless)
-        return None
+                    rank = (len(span), -start, candidate)
+                    best = max(best, rank) if best else rank
+                    break
+        if best is None:
+            return None
+        span_length, negative_start, candidate = best
+        start = -negative_start
+        rest = words[:start] + words[start + span_length :]
+        return Match(self._exact[candidate], exact=all(_is_harmless(word) for word in rest))
 
 
 def _is_harmless(word: str) -> bool:

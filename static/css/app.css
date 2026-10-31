@@ -30,3 +30,63 @@ main {
 h1 {
   color: var(--color-accent);
 }
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space);
+  align-items: center;
+  padding: var(--space);
+  border-bottom: 1px solid var(--color-accent);
+}
+
+a,
+.link-button {
+  color: var(--color-accent);
+}
+
+.link-button {
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+button,
+input,
+select {
+  min-height: 44px;
+  font: inherit;
+}
+
+button {
+  padding: 0 var(--space);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+}
+
+.list li {
+  padding: 0.5rem 0;
+}
+
+.messages {
+  list-style: none;
+  padding: 0;
+}
+
+.message {
+  padding: var(--space);
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.notice {
+  border-left: 4px solid var(--color-accent);
+  padding-left: var(--space);
+}

@@ -16,6 +16,11 @@ def env_bool(name: str, default: bool = False) -> bool:
     return raw.strip().lower() in _TRUE_VALUES
 
 
+def env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    return default if raw is None else int(raw)
+
+
 def env_list(name: str, default: tuple[str, ...] = ()) -> list[str]:
     """Liste séparée par des virgules ; les éléments vides sont ignorés."""
     raw = os.environ.get(name)

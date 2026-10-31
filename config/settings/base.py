@@ -5,7 +5,7 @@ from pathlib import Path
 import dj_database_url
 from django.utils.csp import CSP
 
-from apps.core.env import env_bool, env_list, env_required, env_str
+from apps.core.env import env_bool, env_int, env_list, env_required, env_str
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -15,13 +15,22 @@ CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 CRON_SECRET = env_str("CRON_SECRET")
 
 INSTALLED_APPS = [
-    # `django.contrib.auth` et `admin` arrivent en M1 avec le modèle utilisateur
-    # personnalisé, qui doit exister dès la première migration d'`auth`.
     "django.contrib.contenttypes",
+    "django.contrib.auth",
     "django.contrib.sessions",
+    "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.admin",
+    "django.contrib.postgres",
+    "allauth",
+    "allauth.account",
+    "allauth.mfa",
     "apps.core",
+    "apps.accounts",
+    "apps.households",
 ]
+
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -29,9 +38,14 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.core.middleware.PermissionsPolicyMiddleware",
+    # En dernier : ses redirections traversent ainsi CSP et en-têtes de sécurité.
+    "apps.accounts.middleware.AccessPolicyMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -45,6 +59,8 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.csp",
             ],
         },
@@ -69,6 +85,51 @@ def database_config(url: str) -> dict:
     config.setdefault("OPTIONS", {})["prepare_threshold"] = None
     return config
 
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+]
+PASSWORD_RESET_TIMEOUT = 24 * 60 * 60
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+AUTHENTICATION_BACKENDS = ["allauth.account.auth_backends.AuthenticationBackend"]
+LOGIN_URL = "account_login"
+LOGIN_REDIRECT_URL = "/"
+
+# Inscription fermée (adaptateur), pas d'e-mail : les liens d'invitation et de
+# réinitialisation sont générés par le propriétaire du foyer.
+ACCOUNT_ADAPTER = "apps.accounts.adapters.ClosedAccountAdapter"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # le modèle utilisateur n'a pas de `username`
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_REAUTHENTICATION_REQUIRED = True
+ACCOUNT_REAUTHENTICATION_TIMEOUT = 5 * 60
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_LOGOUT_REDIRECT_URL = "account_login"
+MFA_SUPPORTED_TYPES = ["totp", "webauthn", "recovery_codes"]
+MFA_PASSKEY_LOGIN_ENABLED = True
+MFA_TOTP_ISSUER = "Menu du jour"
+
+# Les compteurs de limitation de débit doivent être partagés entre instances serverless.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
+
+# Chemin de l'administration ; désactivée si la variable est absente (cas de la production).
+ADMIN_PATH = env_str("ADMIN_PATH")
 
 LANGUAGE_CODE = "fr"
 TIME_ZONE = "Europe/Paris"
@@ -109,3 +170,5 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "INFO"},
 }
+
+INVITATION_TTL_DAYS = env_int("INVITATION_TTL_DAYS", 7)

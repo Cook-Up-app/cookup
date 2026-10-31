@@ -5,8 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Menu du jour{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <main>{% block content %}{% endblock %}</main>
+  {% if user.is_authenticated %}
+    <nav class="nav" aria-label="Navigation principale">
+      <a href="{% url 'core:home' %}">Menu du jour</a>
+      <a href="{% url 'households:home' %}">Foyer</a>
+      <a href="{% url 'households:diners' %}">Convives</a>
+      <a href="{% url 'households:equipment' %}">Équipements</a>
+      <a href="{% url 'mfa_index' %}">Sécurité</a>
+      <form method="post" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="link-button">Déconnexion</button>
+      </form>
+    </nav>
+  {% endif %}
+  <main>
+    {% if messages %}
+      <ul class="messages" role="status">
+        {% for message in messages %}<li class="message message-{{ message.level_tag }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>

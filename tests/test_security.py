@@ -79,3 +79,9 @@ def test_wsgi_entrypoint_forces_production_settings(monkeypatch):
     import os
 
     assert os.environ["DJANGO_SETTINGS_MODULE"] == "config.settings.production"
+
+
+def test_home_renders_without_collected_static_files(client, production_settings):
+    response = client.get(reverse("core:home"), secure=True)
+
+    assert response.status_code == 200

@@ -14,7 +14,7 @@ def production_settings(monkeypatch):
     values = {
         name: getattr(module, name)
         for name in dir(module)
-        if name.isupper() and name not in {"DATABASES", "SECRET_KEY", "ALLOWED_HOSTS", "STORAGES"}
+        if name.isupper() and name not in {"DATABASES", "SECRET_KEY", "ALLOWED_HOSTS"}
     }
     with override_settings(ALLOWED_HOSTS=["testserver"], **values):
         yield module

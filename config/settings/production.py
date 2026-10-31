@@ -11,7 +11,9 @@ DATABASES = {"default": database_config(database_url())}
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    # Vercel exécute collectstatic au build et sert /static depuis son CDN : la fonction n'a pas
+    # de dossier staticfiles, donc pas de stockage à manifeste (il lèverait une erreur 500).
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -5,6 +5,7 @@ from django import forms
 from apps.core.reference import Equipment, MealType
 from apps.households.models import Diner, HouseholdSettings
 
+from .engine.types import COOKEO_CAPACITY
 from .services import MAX_DAYS, PlanRequest
 
 SOURCE_MODES = HouseholdSettings.SourceMode
@@ -29,7 +30,14 @@ class PlanForm(forms.Form):
     guests = forms.IntegerField(label="Invités ponctuels", min_value=0, max_value=20, initial=0)
     mode = forms.ChoiceField(label="Source des recettes", choices=SOURCE_MODES.choices)
     cookeo_share = forms.IntegerField(
-        label="Part de Cookeo (%) en mode mixte", min_value=0, max_value=100, initial=50
+        label="Part de Cookeo (%) en mode mixte",
+        min_value=0,
+        max_value=100,
+        initial=50,
+        widget=forms.NumberInput(attrs={"type": "range", "min": 0, "max": 100, "step": 5}),
+    )
+    split_cookeo = forms.BooleanField(
+        label="Scinder la cuisson Cookeo au-delà de 6 portions", required=False
     )
     quick = forms.BooleanField(label="Rapide (30 min maximum)", required=False)
     without_equipment = forms.MultipleChoiceField(
@@ -51,9 +59,24 @@ class PlanForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get("mode") != SOURCE_MODES.CLASSIC and not self.has_cookeo:
-            self.add_error("mode", "Le mode Cookeo exige l'équipement Cookeo dans le foyer.")
+        mode = cleaned.get("mode")
+        if mode and mode != SOURCE_MODES.CLASSIC:
+            if not self.has_cookeo:
+                self.add_error("mode", "Le mode Cookeo exige l'équipement Cookeo dans le foyer.")
+            else:
+                self._check_capacity(cleaned)
         return cleaned
+
+    def _check_capacity(self, cleaned) -> None:
+        """Cuve de 6 L : au-delà de 6 portions, on prévient et on propose de scinder."""
+        people = len(cleaned.get("diners") or []) + (cleaned.get("guests") or 0)
+        if people > COOKEO_CAPACITY and not cleaned.get("split_cookeo"):
+            self.add_error(
+                "mode",
+                f"Le Cookeo contient {COOKEO_CAPACITY} portions au maximum et vous avez {people} "
+                "convives : réduisez le nombre de convives, passez en mode Classique ou cochez "
+                "« Scinder la cuisson Cookeo ».",
+            )
 
     def to_request(self) -> PlanRequest:
         from datetime import timedelta
@@ -70,6 +93,7 @@ class PlanForm(forms.Form):
             mode=data["mode"],
             cookeo_share=data["cookeo_share"],
             quick=data["quick"],
+            split_cookeo=data["split_cookeo"],
             without_equipment=tuple(data["without_equipment"]),
             wanted_tags=tags,
         )

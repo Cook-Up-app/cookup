@@ -35,13 +35,17 @@ class FetchResult:
 
 
 class Transport(Protocol):
-    def get(self, url: str, headers: dict[str, str]) -> RawResponse: ...
+    def get(
+        self, url: str, headers: dict[str, str], max_bytes: int = MAX_BYTES, truncate: bool = False
+    ) -> RawResponse: ...
 
 
 class HttpTransport:
     """Transport réel : vérifie l'adresse réellement jointe avant d'envoyer quoi que ce soit."""
 
-    def get(self, url: str, headers: dict[str, str]) -> RawResponse:
+    def get(
+        self, url: str, headers: dict[str, str], max_bytes: int = MAX_BYTES, truncate: bool = False
+    ) -> RawResponse:
         parts = urlsplit(url)
         connection_class = (
             http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
@@ -55,7 +59,7 @@ class HttpTransport:
                 "GET", f"{target}?{parts.query}" if parts.query else target, headers=headers
             )
             response = connection.getresponse()
-            body = _read_capped(response)
+            body = _read_capped(response, max_bytes, truncate)
             response_headers = {name.lower(): value for name, value in response.getheaders()}
             return RawResponse(response.status, response_headers, body)
         except OSError as error:
@@ -64,10 +68,13 @@ class HttpTransport:
             connection.close()
 
 
-def _read_capped(response: http.client.HTTPResponse) -> bytes:
-    body = response.read(MAX_BYTES + 1)
-    if len(body) > MAX_BYTES:
-        raise FetchFailed("Réponse trop volumineuse.")
+def _read_capped(response: http.client.HTTPResponse, max_bytes: int, truncate: bool) -> bytes:
+    """Lit au plus `max_bytes` ; au-delà : erreur, ou troncature (début d'un sitemap)."""
+    body = response.read(max_bytes + 1)
+    if len(body) > max_bytes:
+        if not truncate:
+            raise FetchFailed("Réponse trop volumineuse.")
+        body = body[:max_bytes]
     if (response.getheader("Content-Encoding") or "").lower() in {"gzip", "x-gzip"}:
         decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
         body = decompressor.decompress(body, MAX_BYTES + 1)
@@ -95,25 +102,35 @@ class PoliteFetcher:
         self._transport = transport or HttpTransport()
         self._robots = RobotsPolicy(self._load_robots, user_agent)
 
-    def get(self, url: str) -> FetchResult:
+    def get(self, url: str, *, max_bytes: int = MAX_BYTES, truncate: bool = False) -> FetchResult:
+        """`truncate` : ne lire que le début d'un document volumineux (sitemap), sans erreur."""
         current = url
         for _ in range(MAX_REDIRECTS + 1):
-            response = self._checked_request(current)
+            response = self._checked_request(current, max_bytes, truncate)
             if response.status in REDIRECT_STATUSES and "location" in response.headers:
                 current = urljoin(current, response.headers["location"])
                 continue
             return self._finish(current, response)
         raise FetchFailed("Trop de redirections.")
 
-    def _checked_request(self, url: str) -> RawResponse:
+    def _checked_request(self, url: str, max_bytes: int, truncate: bool) -> RawResponse:
         validate_url(url, self._allowed)
         parts = urlsplit(url)
         rules = self._robots.ensure_allowed(f"{parts.scheme}://{parts.netloc}", url)
-        return self._request(url, rules.crawl_delay(self._user_agent))
+        return self._request(url, rules.crawl_delay(self._user_agent), max_bytes, truncate)
 
-    def _request(self, url: str, crawl_delay: float | None = None) -> RawResponse:
+    def _request(
+        self,
+        url: str,
+        crawl_delay: float | None = None,
+        max_bytes: int = MAX_BYTES,
+        truncate: bool = False,
+    ) -> RawResponse:
         self._limiter.wait(crawl_delay)
-        response = self._transport.get(url, self._headers())
+        headers = self._headers()
+        if truncate:
+            headers["Accept-Encoding"] = "identity"  # un flux tronqué ne se décompresse pas
+        response = self._transport.get(url, headers, max_bytes, truncate)
         if response.status in PAUSE_STATUSES:
             self._limiter.pause(_retry_after(response))
             raise SourceUnavailable(f"La source a répondu {response.status} : pause.")

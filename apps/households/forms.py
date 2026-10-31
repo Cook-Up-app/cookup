@@ -3,6 +3,7 @@ from django import forms
 from apps.catalog.models import Ingredient
 from apps.catalog.text import stem_key
 from apps.core.reference import Diet, MealType
+from apps.core.reference import Equipment as EquipmentCode
 
 from .models import (
     MAX_WEIGHT,
@@ -11,6 +12,7 @@ from .models import (
     DinerRestriction,
     Equipment,
     Household,
+    HouseholdEquipment,
     HouseholdSettings,
 )
 
@@ -122,6 +124,16 @@ class SettingsForm(forms.ModelForm):
                 max_value=MAX_WEIGHT,
                 initial=weights.get(name),
             )
+
+    def clean(self):
+        cleaned = super().clean()
+        mode = cleaned.get("source_mode")
+        owned = HouseholdEquipment.objects.filter(
+            household=self.instance.household, equipment_id=EquipmentCode.COOKEO.value
+        )
+        if mode and mode != HouseholdSettings.SourceMode.CLASSIC and not owned.exists():
+            self.add_error("source_mode", "Le mode Cookeo exige l'équipement Cookeo dans le foyer.")
+        return cleaned
 
     def clean_leftover_weekdays(self) -> list[int]:
         return [int(day) for day in self.cleaned_data["leftover_weekdays"]]

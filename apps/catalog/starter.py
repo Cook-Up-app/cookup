@@ -4,7 +4,7 @@ Format d'un bloc de `starter_data.RECIPES` :
     ## Titre | portions | préparation | cuisson | repas | équipements | étiquettes
     + ingrédient          (une ligne par ingrédient)
     - étape               (une ligne par étape)
-    @ mode | minutes      (Cookeo seulement : programme et durée sous pression)
+    @ mode | minutes [| crisp]   (Cookeo : programme, durée sous pression, couvercle Extra Crisp)
 Repas : b petit-déjeuner, l déjeuner, d dîner, s collation, x dessert.
 Équipements (obligatoires) : c Cookeo, o four, h plaques, m micro-ondes, b mixeur, r robot,
 d cocotte.
@@ -13,6 +13,7 @@ d cocotte.
 from apps.core.reference import Equipment, MealType, RecipeSource
 
 from .dto import RecipeDTO
+from .models import Recipe
 from .services import load_index, save_recipe
 from .starter_data import RECIPES
 
@@ -54,8 +55,12 @@ def parse_block(block: str) -> RecipeDTO:
     program = {}
     for line in lines[1:]:
         if line.startswith("@"):
-            mode, minutes = (part.strip() for part in line[1:].split("|"))
-            program = {"mode": mode, "pressure_minutes": int(minutes)}
+            mode, minutes, *options = (part.strip() for part in line[1:].split("|"))
+            program = {
+                "mode": mode,
+                "pressure_minutes": int(minutes),
+                "extra_crisp": "crisp" in options,
+            }
     required = [EQUIPMENT[code].value for code in _codes(equipment)]
     return RecipeDTO(
         source=RecipeSource.STARTER.value,
@@ -83,5 +88,20 @@ def load_starter_recipes() -> tuple[int, int]:
     created = 0
     recipes = starter_recipes()
     for dto in recipes:
-        created += int(save_recipe(dto, index)[1])
+        recipe, is_new = save_recipe(dto, index)
+        created += int(is_new)
+        if not is_new and recipe.source == RecipeSource.STARTER:
+            _refresh(recipe, dto)
     return created, len(recipes) - created
+
+
+def _refresh(recipe, dto: RecipeDTO) -> None:
+    """Répercute les relectures du fichier de données sur une recette de départ déjà en base."""
+    Recipe.objects.filter(pk=recipe.pk).update(
+        steps=dto.steps,
+        tags=dto.tags,
+        cookeo_program=dto.cookeo_program,
+        prep_minutes=dto.prep_minutes,
+        cook_minutes=dto.cook_minutes,
+        servings=dto.servings,
+    )

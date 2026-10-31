@@ -7,7 +7,8 @@ from datetime import date, timedelta
 from django.db import transaction
 
 from apps.catalog.models import Recipe
-from apps.households.models import Household, HouseholdSettings
+from apps.core.reference import Equipment
+from apps.households.models import Household, HouseholdEquipment, HouseholdSettings
 
 from . import loading
 from .engine import (
@@ -38,6 +39,7 @@ class PlanRequest:
     mode: str = "classic"
     cookeo_share: int = 50
     quick: bool = False
+    split_cookeo: bool = False
     without_equipment: tuple[str, ...] = ()
     wanted_tags: tuple[str, ...] = ()
     out_of_home: tuple[str, ...] = field(default=())  # clés « jour:repas » sans repas à la maison
@@ -115,7 +117,13 @@ def workspace_for(
     diners = loading.load_diners(household, request.diner_ids)
     history = loading.load_history(household, exclude_plan=exclude_plan, today=today)
     ctx = loading.build_context(
-        household, settings, diners, history, today, wanted_tags=request.wanted_tags
+        household,
+        settings,
+        diners,
+        history,
+        today,
+        wanted_tags=request.wanted_tags,
+        allow_cookeo_split=request.split_cookeo,
     )
     return Workspace(loading.load_recipes(), ctx)
 
@@ -125,6 +133,7 @@ def create_plan(
     household: Household, request: PlanRequest, today: date, seed: int | None = None
 ) -> MenuPlan:
     """Génère et enregistre un menu ; lève `NotEnoughCandidates` avec le détail du blocage."""
+    require_cookeo_if_needed(household, request.mode)
     settings = settings_for(household)
     seed = new_seed() if seed is None else seed
     work = workspace_for(household, settings, request, today)
@@ -247,6 +256,23 @@ def _uuid(value: str):
     import uuid
 
     return uuid.UUID(value)
+
+
+class CookeoUnavailable(Exception):  # noqa: N818 - nom métier
+    """Le mode Cookeo ou mixte est demandé alors que le foyer n'a pas l'équipement."""
+
+
+def has_cookeo(household: Household) -> bool:
+    return (
+        HouseholdEquipment.objects.for_household(household)
+        .filter(equipment_id=Equipment.COOKEO.value)
+        .exists()
+    )
+
+
+def require_cookeo_if_needed(household: Household, mode: str) -> None:
+    if mode != "classic" and not has_cookeo(household):
+        raise CookeoUnavailable
 
 
 class ReplacementRefused(Exception):  # noqa: N818 - nom métier

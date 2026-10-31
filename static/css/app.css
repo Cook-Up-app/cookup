@@ -104,3 +104,16 @@ button {
   min-width: 44px;
   font-size: 1.4rem;
 }
+
+.banner {
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  padding: var(--space);
+}
+
+.badge {
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  padding: 0 0.4rem;
+  font-size: 0.8rem;
+}

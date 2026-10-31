@@ -186,9 +186,13 @@ SOURCES_USER_AGENT = (
     if SOURCES_CONTACT
     else "CookupBot/0.1"
 )
-SOURCES_ALLOWED_DOMAINS = frozenset(env_list("SOURCES_ALLOWED_DOMAINS", ("marmiton.org",)))
 SOURCE_MARMITON_ENABLED = env_bool("SOURCE_MARMITON_ENABLED", False)
 SOURCE_MOULINEX_ENABLED = env_bool("SOURCE_MOULINEX_ENABLED", False)
+# moulinex.fr n'est joignable que si la source est activée explicitement.
+SOURCES_ALLOWED_DOMAINS = frozenset(env_list("SOURCES_ALLOWED_DOMAINS", ("marmiton.org",))) | (
+    frozenset({"moulinex.fr"}) if SOURCE_MOULINEX_ENABLED else frozenset()
+)
+SOURCE_MOULINEX_WEEKLY_QUOTA = env_int("SOURCE_MOULINEX_WEEKLY_QUOTA", 15)
 SOURCE_IMPORT_WEEKLY_QUOTA = env_int("SOURCE_IMPORT_WEEKLY_QUOTA", 40)  # recettes par semaine
 SOURCE_QUERIES_PER_WEEK = env_int("SOURCE_QUERIES_PER_WEEK", 4)  # recherches par semaine
 SOURCE_BATCH_SECONDS = env_int("SOURCE_BATCH_SECONDS", 40)  # temps de traitement par invocation

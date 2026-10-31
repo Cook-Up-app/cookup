@@ -1,13 +1,16 @@
 """Adaptateurs de sources : import par URL (tout domaine autorisé) et Marmiton."""
 
+import random
 import re
+from dataclasses import replace
 from urllib.parse import quote, urlsplit
 
 from apps.catalog.dto import RecipeDTO
+from apps.catalog.text import fold
 from apps.core.reference import RecipeSource
 
 from .contracts import RawRecipe, RecipeStub, SearchQuery
-from .exceptions import FetchRefused
+from .exceptions import FetchRefused, ParseFailed
 from .http import PoliteFetcher
 from .parsing import parse_recipe_html
 from .registry import register
@@ -61,3 +64,52 @@ class MarmitonSource(UrlImportSource):
         if not MARMITON_RECIPE_PATH.match(urlsplit(ref).path):
             raise FetchRefused("Ce n'est pas une page de recette Marmiton.")
         return super().fetch(ref)
+
+
+MOULINEX_HOST = "www.moulinex.fr"
+MOULINEX_SITEMAP = f"https://{MOULINEX_HOST}/Recipe-fr_fr-EUR.xml"
+MOULINEX_RECIPE_PATH = re.compile(r"^/(?:recette|recipe)/detail/[A-Z]+/.+/\d+$")
+_SITEMAP_LOC = re.compile(r"<loc>([^<]+)</loc>")
+_HTML_LANG = re.compile(r"<html[^>]*\blang=\"([a-zA-Z]{2})")
+SITEMAP_PREFIX_BYTES = 400_000  # le début du sitemap suffit : on n'en lit jamais plus
+
+
+@register(RecipeSource.MOULINEX)
+class MoulinexSource(UrlImportSource):
+    """moulinex.fr : découverte par sitemap (sa recherche est interdite par robots.txt).
+
+    Par prudence vis-à-vis des conditions du Groupe SEB, seul le strict nécessaire est conservé :
+    ingrédients, durée, portions et lien vers la page d'origine ; ni étapes ni images.
+    """
+
+    key = RecipeSource.MOULINEX.value
+
+    def discover(self, seed: int, limit: int) -> list[RecipeStub]:
+        page = self._fetcher.get(MOULINEX_SITEMAP, max_bytes=SITEMAP_PREFIX_BYTES, truncate=True)
+        urls = [u for u in _SITEMAP_LOC.findall(page.text) if self._is_recipe(u)]
+        random.Random(seed).shuffle(urls)  # noqa: S311 - tirage reproductible, pas de crypto
+        return [RecipeStub(url) for url in urls[:limit]]
+
+    @staticmethod
+    def _is_recipe(url: str) -> bool:
+        parts = urlsplit(url)
+        return parts.netloc == MOULINEX_HOST and bool(MOULINEX_RECIPE_PATH.match(parts.path))
+
+    def fetch(self, ref: str) -> RawRecipe:
+        if not self._is_recipe(ref):
+            raise FetchRefused("Ce n'est pas une page de recette Moulinex.")
+        return super().fetch(ref)
+
+    def parse(self, raw: RawRecipe):
+        language = _HTML_LANG.search(raw.html)
+        if language is None or language.group(1).lower() != "fr":
+            raise ParseFailed("Page non française : ignorée.")
+        dto = super().parse(raw)
+        text = fold(" ".join([dto.title, *dto.tags, *dto.steps]))
+        return replace(
+            dto,
+            steps=[],
+            image_url="",
+            cookeo_compatible="cookeo" in text,
+            tags=[*dto.tags, "moulinex"][:12],
+        )

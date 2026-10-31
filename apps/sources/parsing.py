@@ -100,6 +100,9 @@ def parse_recipe_html(page: str, url: str, source: str) -> RecipeDTO:
     steps = [step for step in steps if step][:MAX_STEPS]
     if not title or not ingredients:
         raise ParseFailed("Recette sans titre ou sans ingrédients.")
+    prep, cook = _optional(scraper.prep_time), _optional(scraper.cook_time)
+    if prep is None and cook is None:
+        prep = _optional(scraper.total_time)  # seule la durée totale est publiée
     category = " ".join(_as_strings(_optional(scraper.category, "")))
     tags = _split_tags(_optional(scraper.keywords, ""), category)
     return RecipeDTO(
@@ -111,8 +114,8 @@ def parse_recipe_html(page: str, url: str, source: str) -> RecipeDTO:
         url=url,
         image_url=_safe_image(_optional(scraper.image)),
         servings=_servings(_optional(scraper.yields)),
-        prep_minutes=_optional(scraper.prep_time),
-        cook_minutes=_optional(scraper.cook_time),
+        prep_minutes=prep,
+        cook_minutes=cook,
         tags=tags,
         meal_types=infer_meal_types(category, *tags),
         rating=_rating(scraper),

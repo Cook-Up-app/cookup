@@ -186,6 +186,7 @@ def build_context(
         vegetarian_per_week=settings.vegetarian_per_week,
         weights=settings.weights or {},
         wanted_tags=frozenset(extra.get("wanted_tags", ())),
+        allow_cookeo_split=bool(extra.get("allow_cookeo_split", False)),
     )
     return Context(
         diners={d.id: d for d in diners},

@@ -8,6 +8,17 @@
     {% if recipe.cook_minutes %}· cuisson {{ recipe.cook_minutes }} min{% endif %}
     {% if recipe.cookeo_compatible %}· compatible Cookeo{% endif %}
   </p>
+  {% if recipe.cookeo_compatible %}
+    <p class="banner">
+      <strong>Cookeo</strong> —
+      {% if recipe.cookeo_program.mode %}
+        {{ recipe.cookeo_program.mode }}{% if recipe.cookeo_program.pressure_minutes %}, {{ recipe.cookeo_program.pressure_minutes }} min sous pression{% endif %}{% if recipe.cookeo_program.extra_crisp %}, finition avec le couvercle Extra Crisp{% endif %}
+      {% else %}
+        programme non précisé par la source : suivez le mode d'emploi de votre appareil.
+      {% endif %}
+      (cuve de 6 portions au maximum)
+    </p>
+  {% endif %}
   {% if recipe.url %}
     <p>Source : <a href="{{ recipe.url }}" rel="noopener noreferrer nofollow">{{ recipe.get_source_display }}</a> (recette originale sur le site d'origine)</p>
   {% else %}
@@ -25,7 +36,11 @@
     {% endfor %}
   </ul>
   <h2>Étapes</h2>
-  <ol>
-    {% for step in recipe.steps %}<li>{{ step }}</li>{% endfor %}
-  </ol>
+  {% if recipe.steps %}
+    <ol>
+      {% for step in recipe.steps %}<li>{{ step }}</li>{% endfor %}
+    </ol>
+  {% else %}
+    <p>Les étapes ne sont pas conservées : consultez la <a href="{{ recipe.url }}" rel="noopener noreferrer nofollow">recette sur le site d'origine</a>.</p>
+  {% endif %}
 {% endblock %}

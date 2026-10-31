@@ -4,7 +4,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from .types import Context, RecipeView, SlotSpec
+from .types import COOKEO_CAPACITY, Context, RecipeView, SlotSpec
 
 WEEKDAYS_FR = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
 NEUTRAL = 0.5
@@ -231,6 +231,9 @@ def explanation(recipe: RecipeView, slot: SlotSpec, ctx: Context, state: PlanSta
             parts.append(text)
     if recipe.total_minutes:
         parts.insert(min(1, len(parts)), f"{recipe.total_minutes} min")
+    if recipe.cookeo and slot.cook_servings > COOKEO_CAPACITY:
+        batches = -(-slot.cook_servings // COOKEO_CAPACITY)
+        parts.append(f"à cuire en {batches} fois (cuve de {COOKEO_CAPACITY} portions)")
     return (parts[0][0].upper() + ", ".join(parts)[1:] + ".") if parts else ""
 
 

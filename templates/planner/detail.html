@@ -18,7 +18,7 @@
               hors maison
             {% elif slot.recipe %}
               <a href="{% url 'catalog:detail' slot.recipe.pk %}">{{ slot.recipe.title }}</a>
-              {% if slot.leftover %}(restes){% endif %}
+              {% if slot.leftover %}(restes){% endif %}{% if slot.recipe.cookeo_compatible %} <span class="badge">Cookeo</span>{% endif %}
               {% if slot.locked %}🔒{% endif %}
               <br><small>{{ slot.explanation }}</small>
             {% endif %}

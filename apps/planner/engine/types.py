@@ -89,6 +89,7 @@ class EngineSettings:
     improvement_swaps: int = 200
     weights: Mapping[str, int] = field(default_factory=dict)
     wanted_tags: frozenset[str] = frozenset()
+    allow_cookeo_split: bool = False  # cuire en plusieurs fois au-delà de la cuve de 6 L
 
 
 @dataclass(frozen=True)

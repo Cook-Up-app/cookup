@@ -98,7 +98,8 @@ def meal_type_rule(recipe: RecipeView, slot: SlotSpec, ctx: Context) -> Violatio
 
 
 def portions_rule(recipe: RecipeView, slot: SlotSpec, ctx: Context) -> Violation | None:
-    if recipe.cookeo and slot.cook_servings > COOKEO_CAPACITY:
+    over_capacity = recipe.cookeo and slot.cook_servings > COOKEO_CAPACITY
+    if over_capacity and not ctx.settings.allow_cookeo_split:
         return Violation.PORTIONS
     return None
 

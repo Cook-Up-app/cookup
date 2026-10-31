@@ -31,5 +31,11 @@ class Fetchable(Protocol):
     def fetch(self, ref: str) -> RawRecipe: ...
 
 
+class Discoverable(Protocol):
+    """Source qui sait lister des recettes sans recherche (sitemap déclaré dans robots.txt)."""
+
+    def discover(self, seed: int, limit: int) -> list[RecipeStub]: ...
+
+
 class Parsable(Protocol):
     def parse(self, raw: RawRecipe) -> RecipeDTO: ...

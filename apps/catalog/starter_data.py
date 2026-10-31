@@ -693,7 +693,7 @@ RECIPES = """
 - Cuire les pommes de terre sous pression, puis les écraser avec lait et beurre.
 - Dorer viande et oignon, puis couvrir de purée et de fromage.
 - Gratiner avec le couvercle Extra Crisp.
-@ Cuisson sous pression | 8
+@ Cuisson sous pression | 8 | crisp
 
 ## Pâtes à la carbonara au Cookeo | 4 | 5 | 15 | l,d | c | cookeo, rapide
 + 400 g de pâtes
@@ -825,7 +825,7 @@ RECIPES = """
 - Couper les pommes de terre en fines rondelles.
 - Cuire avec crème, lait et ail sous pression.
 - Gratiner avec le couvercle Extra Crisp.
-@ Cuisson sous pression | 8
+@ Cuisson sous pression | 8 | crisp
 
 ## Chili sin carne au Cookeo | 4 | 10 | 20 | d | c | cookeo, végétarien, épicé
 + 800 g de haricots rouges

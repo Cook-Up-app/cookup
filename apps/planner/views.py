@@ -7,8 +7,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
-from apps.core.reference import Equipment
-from apps.households.models import HouseholdEquipment
 from apps.households.permissions import household_required
 
 from . import services
@@ -45,15 +43,11 @@ def menu_list(request: HttpRequest) -> HttpResponse:
 def _form(request: HttpRequest, data=None) -> PlanForm:
     household = request.household
     settings = services.settings_for(household)
-    has_cookeo = (
-        HouseholdEquipment.objects.for_household(household)
-        .filter(equipment_id=Equipment.COOKEO.value)
-        .exists()
-    )
+    has_cookeo = services.has_cookeo(household)
     initial = {
         "start_date": _today(),
         "meals": settings.meals,
-        "mode": settings.source_mode,
+        "mode": settings.source_mode if has_cookeo else "classic",
         "cookeo_share": settings.cookeo_share,
         "diners": household.diners.all(),
     }
@@ -77,6 +71,9 @@ def _generate(request: HttpRequest, form: PlanForm) -> HttpResponse:
         plan = services.create_plan(request.household, form.to_request(), _today())
     except NotEnoughCandidates as failure:
         messages.error(request, describe_failure(failure.report))
+        return render(request, "planner/new.html", {"form": form})
+    except services.CookeoUnavailable:
+        form.add_error("mode", "Le mode Cookeo exige l'équipement Cookeo dans le foyer.")
         return render(request, "planner/new.html", {"form": form})
     return redirect("planner:detail", pk=plan.pk)
 

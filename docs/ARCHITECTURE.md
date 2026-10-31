@@ -9,6 +9,14 @@ Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`),
 - Sécurité : CSP native Django 6.1 (`SECURE_CSP`, sans `unsafe-inline`/`unsafe-eval`), `X-Frame-Options`, `Referrer-Policy`, `nosniff`.
 - `vercel.json` : région `cdg1`, `maxDuration` 60 s (Hobby : 300 s max, vérifié), cron quotidien 05:00.
 
+## État après M3
+
+- **Moteur** (`apps/planner/engine/`, Python pur, sans Django) : `rules` (contraintes dures, une fonction par règle, registre `RULES`), `criteria` (7 critères de score enregistrés : goûts 30, notes 15, fraîcheur 20, diversité 15, anti-gaspillage 10, budget 5, saison 5), `selection` (créneaux les plus contraints d'abord, tirage softmax reproductible par graine, 200 essais d'amélioration), `planning` (mode Cookeo/mixte par créneau, jours « restes »), `failure` (rapport chiffré des contraintes qui bloquent).
+- **Sécurité alimentaire** : allergie stricte = exclusion totale ; **toute recette dont un ingrédient est inconnu, à vérifier ou aux allergènes non confirmés est écartée dès qu'une allergie ou un régime existe** (échec côté sûr). Les intolérances et aliments à éviter baissent le score sans exclure.
+- **Frontière** (`loading`, `services`) : une requête par table pour charger le catalogue, conversion en objets du moteur ; le remplacement d'un repas est **revalidé** par les règles dures avant d'être appliqué.
+- **Données** : `MenuPlan` (paramètres figés, graine), `MenuSlot` (verrouillé, hors maison, restes, explication), `HouseholdSettings`, `TastePreference` ; `Ingredient.diet_flags` et `protein` dérivés par `catalog.traits`.
+- **Écarts** : formulaires classiques avec redirection, sans HTMX (aucune bibliothèque téléchargée) ; pas encore de déplacement/duplication d'un repas ; invités ponctuels au niveau du menu, pas du repas.
+
 ## État après M2
 
 - **Catalogue** (`apps/catalog`, partagé entre foyers) : `Ingredient` (nom canonique, rayon, allergènes, `allergens_reviewed`), `Recipe` (empreinte unique, `search_text` replié sans accents + `search_vector` français, index GIN et trigrammes), `RecipeIngredient` (texte brut toujours conservé), `RecipeEquipment`, `RecipeFeedback` (par foyer). Les ingrédients et recettes de départ se chargent par `make seed` (`seed_catalog`, idempotent).

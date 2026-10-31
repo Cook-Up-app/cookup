@@ -15,6 +15,7 @@ Toutes épinglées dans `uv.lock`, publiées avant le 2026-10-17 (`exclude-newer
 | `protego` | Lecture de robots.txt avec jokers (`*`, `$`), que `urllib.robotparser` ne gère pas | M2 |
 | `nh3` | Nettoyage HTML du contenu importé avant stockage | M2 |
 | `pytest`, `pytest-django` (dev) | Tests | M0 |
+| `pytest-cov` (dev) | Mesure de couverture (≥ 85 % exigé sur `planner` et `shopping`) | M3 |
 | `ruff` (dev) | Lint, format, règles de sécurité `S` | M0 |
 | `pip-audit` (dev) | Audit des vulnérabilités | M0 |
 

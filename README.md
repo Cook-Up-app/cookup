@@ -30,6 +30,15 @@ USE_DIRECT_DATABASE=1 uv run --env-file .env python manage.py createsuperuser
 
 Connectez-vous sur `/connexion` et activez une passkey ou un TOTP sur `/compte/securite` (obligatoire pour les administrateurs). Le foyer « Mon foyer » (4 portions) est créé automatiquement. Inviter d'autres personnes est facultatif : le lien d'invitation est affiché une seule fois et n'expire pas. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
 
+## Mise à jour après M3
+
+```bash
+make migrate   # nouvelles tables (réglages, goûts, menus) et traits d'ingrédients
+make seed      # recalcule régimes et protéines, renormalise les recettes existantes (idempotent)
+```
+
+Ensuite : `/foyer/preferences/` (réglages et poids du moteur), `/foyer/convives/<id>/gouts`, puis `/menus/nouveau`.
+
 Le domaine `.vercel.app` de production ne doit jamais être renommé (passkeys, M1).
 
 ## Écarts connus par rapport à la spec

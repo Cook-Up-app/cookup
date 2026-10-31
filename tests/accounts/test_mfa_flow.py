@@ -10,6 +10,7 @@ from allauth.mfa.totp.internal.auth import (
 )
 from django.urls import reverse
 
+from apps.households import services
 from tests.conftest import PASSWORD, make_user
 
 
@@ -21,10 +22,12 @@ def _code(secret: str, offset: int = 0) -> str:
 @pytest.mark.django_db
 def test_enrol_totp_then_second_factor_is_required_at_next_login(client, settings):
     settings.MFA_TOTP_TOLERANCE = 1  # le code d'activation est consommé : on prend celui d'après
-    make_user("anna@example.com", mfa=False)
+    services.create_household(make_user("anna@example.com", mfa=False), "Foyer")
 
     client.post(reverse("account_login"), {"login": "anna@example.com", "password": PASSWORD})
-    assert client.get(reverse("households:home")).status_code == 302  # MFA pas encore activée
+    assert (
+        client.get(reverse("households:home")).status_code == 302
+    )  # MFA administrateur pas encore activée
 
     client.post(reverse("account_reauthenticate"), {"password": PASSWORD})
     client.get(reverse("mfa_activate_totp"))

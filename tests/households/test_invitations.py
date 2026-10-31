@@ -27,31 +27,36 @@ def test_token_is_stored_hashed_only(owner):
 
 
 @pytest.mark.django_db
-def test_invitation_expires_after_configured_days(owner, settings):
-    invitation, _ = _invite(owner)
+def test_invitations_never_expire_by_default(owner):
+    invitation, token = _invite(owner)
 
-    delta = invitation.expires_at - timezone.now()
-    assert (
-        timedelta(days=settings.INVITATION_TTL_DAYS - 1)
-        < delta
-        <= timedelta(days=settings.INVITATION_TTL_DAYS)
-    )
+    assert invitation.expires_at is None
+    assert services.find_valid_invitation(token) == invitation
 
 
 @pytest.mark.django_db
-def test_accepting_creates_member_and_forces_mfa_enrolment(owner, client):
+def test_invitation_can_still_be_given_a_lifetime(owner, settings):
+    settings.INVITATION_TTL_DAYS = 7
+
+    invitation, _ = _invite(owner)
+
+    assert timedelta(days=6) < invitation.expires_at - timezone.now() <= timedelta(days=7)
+
+
+@pytest.mark.django_db
+def test_accepting_creates_a_member_who_gets_in_without_mfa(owner, client):
     invitation, token = _invite(owner)
 
     response = client.post(reverse("accept-invitation", args=[token]), ACCEPT)
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("mfa_index")
+    assert response["Location"] == reverse("core:home")
     user = User.objects.get(email="lea@example.com")
     assert Membership.objects.get(user=user).household == invitation.household
     assert Membership.objects.get(user=user).role == Membership.Role.MEMBER
     invitation.refresh_from_db()
     assert invitation.used_at is not None
-    assert client.get(reverse("households:home")).status_code == 302  # MFA pas encore activée
+    assert client.get(reverse("households:home")).status_code == 200  # MFA facultative
 
 
 @pytest.mark.django_db

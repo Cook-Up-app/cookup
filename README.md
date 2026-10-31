@@ -28,7 +28,7 @@ make migrate                         # contre Supabase (DATABASE_DIRECT_URL)
 USE_DIRECT_DATABASE=1 uv run --env-file .env python manage.py createsuperuser
 ```
 
-Connectez-vous sur `/connexion`, activez une passkey ou un TOTP sur `/compte/securite`, puis créez le foyer sur `/foyer/`. Invitez ensuite les autres comptes : le lien d'invitation est affiché une seule fois. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
+Connectez-vous sur `/connexion` et activez une passkey ou un TOTP sur `/compte/securite` (obligatoire pour les administrateurs). Le foyer « Mon foyer » (4 portions) est créé automatiquement. Inviter d'autres personnes est facultatif : le lien d'invitation est affiché une seule fois et n'expire pas. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
 
 Le domaine `.vercel.app` de production ne doit jamais être renommé (passkeys, M1).
 

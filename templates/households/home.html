@@ -2,6 +2,13 @@
 {% block title %}Foyer{% endblock %}
 {% block content %}
   <h1>{{ household.name }}</h1>
+  {% if membership.is_owner %}
+    <form method="post" action="{% url 'households:home' %}">
+      {% csrf_token %}
+      {{ household_form.as_p }}
+      <button type="submit">Enregistrer le foyer</button>
+    </form>
+  {% endif %}
   <h2>Membres</h2>
   <ul class="list">
     {% for member in members %}
@@ -19,11 +26,12 @@
     {% endfor %}
   </ul>
   {% if membership.is_owner %}
-    <h2>Invitations</h2>
+    <h2>Inviter quelqu'un (facultatif)</h2>
+    <p>Vous pouvez utiliser l'application seul : les invitations ne servent que si d'autres personnes doivent se connecter.</p>
     <ul class="list">
       {% for invitation in invitations %}
         <li>
-          {{ invitation.email }} — expire le {{ invitation.expires_at|date:"d/m/Y" }}
+          {{ invitation.email }}{% if invitation.expires_at %} — expire le {{ invitation.expires_at|date:"d/m/Y" }}{% endif %}
           <form method="post" action="{% url 'households:invitation-revoke' invitation.pk %}">
             {% csrf_token %}<button type="submit">Révoquer</button>
           </form>

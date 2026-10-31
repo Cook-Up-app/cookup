@@ -65,7 +65,7 @@ class Invitation(models.Model):
     household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name="invitations")
     email = models.EmailField()
     token_hash = models.CharField(max_length=64, unique=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(null=True, blank=True)  # vide = n'expire jamais
     used_at = models.DateTimeField(null=True, blank=True)
     invited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+"

@@ -85,3 +85,10 @@ def test_home_renders_without_collected_static_files(client, production_settings
     response = client.get(reverse("account_login"), secure=True)
 
     assert response.status_code == 200
+
+
+def test_sessions_are_not_revoked_by_time():
+    from django.conf import settings
+
+    assert settings.SESSION_COOKIE_AGE >= 365 * 24 * 60 * 60
+    assert settings.SESSION_SAVE_EVERY_REQUEST is True

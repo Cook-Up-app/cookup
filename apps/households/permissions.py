@@ -4,9 +4,9 @@ from collections.abc import Callable
 from functools import wraps
 
 from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import redirect
 
 from .models import Membership
+from .services import ensure_household
 
 SESSION_HOUSEHOLD_KEY = "household_id"
 
@@ -25,9 +25,7 @@ def current_membership(request: HttpRequest) -> Membership | None:
 def household_required(view: Callable[..., HttpResponse]) -> Callable[..., HttpResponse]:
     @wraps(view)
     def wrapper(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        membership = current_membership(request)
-        if membership is None:
-            return redirect("households:home")
+        membership = current_membership(request) or ensure_household(request.user)
         request.membership = membership
         request.household = membership.household
         return view(request, *args, **kwargs)

@@ -32,16 +32,15 @@ def _show_link_once(request: HttpRequest, label: str, path: str) -> None:
 
 @require_http_methods(["GET", "POST"])
 def household_home(request: HttpRequest) -> HttpResponse:
-    membership = Membership.objects.filter(user=request.user).select_related("household").first()
-    if membership is None:
-        form = HouseholdForm(request.POST or None)
-        if request.method == "POST" and form.is_valid():
-            services.create_household(request.user, form.cleaned_data["name"])
-            return redirect("households:home")
-        return render(request, "households/create.html", {"form": form})
+    membership = services.ensure_household(request.user)
     household = membership.household
+    form = HouseholdForm(request.POST or None, instance=household)
+    if request.method == "POST" and membership.is_owner and form.is_valid():
+        form.save()
+        return redirect("households:home")
     context = {
         "household": household,
+        "household_form": form,
         "membership": membership,
         "members": Membership.objects.for_household(household).select_related("user"),
         "invitations": Invitation.objects.for_household(household).filter(used_at__isnull=True),
@@ -201,7 +200,7 @@ def accept_invitation(request: HttpRequest, token: str) -> HttpResponse:
             login(request, user, backend=AUTH_BACKEND)
             # L'activation de la MFA exige une authentification récente : celle-ci compte.
             reauthenticate_by_password(request)
-            return redirect("mfa_index")
+            return redirect("core:home")
     return render(
         request, "households/accept_invitation.html", {"form": form, "invitation": invitation}
     )

@@ -143,7 +143,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
+# Pas de révocation d'accès liée au temps : session d'un an, prolongée à chaque requête.
+SESSION_COOKIE_AGE = 365 * 24 * 60 * 60
 SESSION_SAVE_EVERY_REQUEST = True  # durée glissante
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
@@ -171,4 +172,5 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 
-INVITATION_TTL_DAYS = env_int("INVITATION_TTL_DAYS", 7)
+# 0 = les invitations n'expirent pas (usage unique et révocation manuelle restent en vigueur).
+INVITATION_TTL_DAYS = env_int("INVITATION_TTL_DAYS", 0)

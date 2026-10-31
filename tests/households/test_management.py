@@ -20,17 +20,43 @@ NEW_PASSWORD = "another-strong-passphrase"
 
 
 @pytest.mark.django_db
-def test_user_without_household_can_create_one(client):
-    client.force_login(make_user("new@example.com"))
+def test_household_is_created_automatically_on_first_visit(client):
+    client.force_login(make_user("solo@example.com"))
 
-    client.post(
-        reverse("households:home"),
-        {"name": "Chez nous", "default_servings": 4, "week_start_day": 0},
+    assert client.get(reverse("households:diners")).status_code == 200
+
+    membership = Membership.objects.get(user__email="solo@example.com")
+    assert membership.is_owner
+    assert membership.household.default_servings == 4
+    assert Membership.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_household_visits_do_not_create_duplicates(client):
+    client.force_login(make_user("solo@example.com"))
+
+    for name in ("households:home", "households:diners", "households:equipment", "households:home"):
+        client.get(reverse(name))
+
+    assert Membership.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_owner_can_edit_household(owner_client):
+    owner_client.post(
+        reverse("households:home"), {"name": "Chez moi", "default_servings": 2, "week_start_day": 0}
     )
 
-    membership = Membership.objects.get(user__email="new@example.com")
-    assert membership.is_owner
-    assert membership.household.name == "Chez nous"
+    household = Membership.objects.get().household
+    assert (household.name, household.default_servings) == ("Chez moi", 2)
+
+
+@pytest.mark.django_db
+def test_solo_user_never_needs_to_invite_anyone(owner_client):
+    page = owner_client.get(reverse("households:home")).content.decode()
+
+    assert "facultatif" in page
+    assert owner_client.get(reverse("households:diners")).status_code == 200
 
 
 @pytest.mark.django_db

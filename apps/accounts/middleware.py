@@ -1,4 +1,4 @@
-"""Refus par défaut : toute route exige une session authentifiée avec MFA enrôlée."""
+"""Refus par défaut : toute route exige une session ; les administrateurs ont aussi la MFA."""
 
 from collections.abc import Callable
 
@@ -8,6 +8,8 @@ from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
 from django.http import HttpRequest, HttpResponse
 from django.urls import Resolver404, resolve
+
+from apps.households.models import Membership
 
 # Accessibles sans session : connexion, réinitialisation par lien, invitation, santé, cron.
 PUBLIC_URL_NAMES = frozenset(
@@ -49,6 +51,16 @@ MFA_ENROLMENT_URL_NAMES = frozenset(
 SECOND_FACTOR_TYPES = [Authenticator.Type.TOTP, Authenticator.Type.WEBAUTHN]
 
 
+def mfa_required(user) -> bool:
+    """MFA obligatoire pour les administrateurs (staff ou propriétaire de foyer), facultative sinon.
+
+    Un simple membre qui active tout de même une MFA se verra la demander à la connexion.
+    """
+    if user.is_staff or user.is_superuser:
+        return True
+    return Membership.objects.filter(user=user, role=Membership.Role.OWNER).exists()
+
+
 class AccessPolicyMiddleware:
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
@@ -63,9 +75,9 @@ class AccessPolicyMiddleware:
             return None
         if not request.user.is_authenticated:
             return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
-        if url_name in MFA_ENROLMENT_URL_NAMES or is_mfa_enabled(
-            request.user, types=SECOND_FACTOR_TYPES
-        ):
+        if url_name in MFA_ENROLMENT_URL_NAMES or not mfa_required(request.user):
+            return None
+        if is_mfa_enabled(request.user, types=SECOND_FACTOR_TYPES):
             return None
         return redirect_to_login(request.get_full_path(), "mfa_index")
 

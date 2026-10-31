@@ -16,6 +16,9 @@
       <button type="submit" form="mfa_login" id="passkey_login" class="btn btn-block">{% icon "shield" %}<span>Utiliser une clé d'accès</span></button>
     </div>
   {% endif %}
+  {% if signup_open %}
+    <p class="mt">Pas encore de compte ? <a href="{% url 'account_signup' %}">Créer un compte</a></p>
+  {% endif %}
 {% endblock content %}
 {% block extra_body %}
   {{ block.super }}

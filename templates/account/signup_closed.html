@@ -1,0 +1,7 @@
+{% extends "account/base_entrance.html" %}
+{% block head_title %}Inscriptions fermées{% endblock %}
+{% block content %}
+  <h1 class="auth-title">Inscriptions fermées</h1>
+  <p class="muted">La création de compte est fermée pour le moment.</p>
+  <p class="mt"><a href="{% url 'account_login' %}">Se connecter</a></p>
+{% endblock content %}

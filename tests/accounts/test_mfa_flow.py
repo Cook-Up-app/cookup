@@ -22,7 +22,10 @@ def _code(secret: str, offset: int = 0) -> str:
 @pytest.mark.django_db
 def test_enrol_totp_then_second_factor_is_required_at_next_login(client, settings):
     settings.MFA_TOTP_TOLERANCE = 1  # le code d'activation est consommé : on prend celui d'après
-    services.create_household(make_user("anna@example.com", mfa=False), "Foyer")
+    anna = make_user("anna@example.com", mfa=False)
+    anna.is_staff = True
+    anna.save()
+    services.create_household(anna, "Foyer")
 
     client.post(reverse("account_login"), {"login": "anna@example.com", "password": PASSWORD})
     assert (

@@ -17,6 +17,8 @@ STORAGES = {
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Limitation de débit par IP : l'en-tête posé par Vercel, que le client ne peut pas forger.
+ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "x-vercel-forwarded-for"
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 365 * 24 * 60 * 60
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True

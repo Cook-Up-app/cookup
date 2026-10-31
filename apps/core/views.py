@@ -1,5 +1,6 @@
 import hmac
 import json
+from http import HTTPStatus
 
 from django.conf import settings
 from django.db import Error as DatabaseError
@@ -76,6 +77,11 @@ def service_worker(request: HttpRequest) -> HttpResponse:
     response.headers["Cache-Control"] = "no-cache"  # le navigateur revérifie à chaque démarrage
     response.headers["Service-Worker-Allowed"] = "/"
     return response
+
+
+def too_many_requests(request: HttpRequest) -> HttpResponse:
+    """Réponse de la limitation de débit (allauth la cherche dans `handler429` de l'urlconf)."""
+    return render(request, "429.html", status=HTTPStatus.TOO_MANY_REQUESTS)
 
 
 @require_safe

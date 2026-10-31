@@ -9,8 +9,6 @@ from django.contrib.auth.views import redirect_to_login
 from django.http import HttpRequest, HttpResponse
 from django.urls import Resolver404, resolve
 
-from apps.households.models import Membership
-
 # Accessibles sans session : connexion, réinitialisation par lien, invitation, santé, cron.
 PUBLIC_URL_NAMES = frozenset(
     {
@@ -57,13 +55,12 @@ SECOND_FACTOR_TYPES = [Authenticator.Type.TOTP, Authenticator.Type.WEBAUTHN]
 
 
 def mfa_required(user) -> bool:
-    """MFA obligatoire pour les administrateurs (staff ou propriétaire de foyer), facultative sinon.
+    """MFA obligatoire pour les administrateurs de l'application (staff), facultative sinon.
 
-    Un simple membre qui active tout de même une MFA se verra la demander à la connexion.
+    Chaque inscrit est propriétaire de son foyer : ce rôle n'est donc pas administrateur.
+    Qui active tout de même une MFA se la verra demander à la connexion.
     """
-    if user.is_staff or user.is_superuser:
-        return True
-    return Membership.objects.filter(user=user, role=Membership.Role.OWNER).exists()
+    return user.is_staff or user.is_superuser
 
 
 class AccessPolicyMiddleware:

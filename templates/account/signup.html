@@ -1,0 +1,13 @@
+{% extends "account/base_entrance.html" %}
+{% block head_title %}Créer un compte{% endblock %}
+{% block content %}
+  <h1 class="auth-title">Créer un compte</h1>
+  <p class="muted">Vous aurez votre propre foyer : vos menus, vos courses et vos recettes ne sont visibles que de vous.</p>
+  <form method="post" action="{% url 'account_signup' %}" class="stack">
+    {% csrf_token %}
+    {{ form }}
+    {{ redirect_field }}
+    <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
+  </form>
+  <p class="mt">Déjà inscrit ? <a href="{{ login_url }}">Se connecter</a></p>
+{% endblock content %}

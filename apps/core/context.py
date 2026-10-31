@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
 
@@ -24,4 +25,5 @@ def ui(request: HttpRequest) -> dict:
         "nav_more": more,
         "nav_household": [_entry(i, view_name) for i in navigation.HOUSEHOLD],
         "nav_account": [_entry(i, view_name) for i in navigation.ACCOUNT],
+        "signup_open": settings.SIGNUP_OPEN,
     }

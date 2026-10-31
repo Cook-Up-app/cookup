@@ -1,5 +1,5 @@
 from allauth.account.decorators import secure_admin_login
-from allauth.account.views import LoginView, LogoutView
+from allauth.account.views import LoginView, LogoutView, SignupView
 from allauth.mfa.base.views import IndexView as SecurityView
 from django.conf import settings
 from django.contrib import admin
@@ -24,9 +24,12 @@ urlpatterns = [
     # Chemins français de la spec. Placés après allauth : `reverse` retient le dernier motif
     # portant un nom, et ces chemins n'entrent pas en conflit avec ceux d'allauth.
     path("connexion", LoginView.as_view(), name="account_login"),
+    path("inscription", SignupView.as_view(), name="account_signup"),
     path("deconnexion", LogoutView.as_view(), name="account_logout"),
     path("compte/securite", SecurityView.as_view(), name="mfa_index"),
 ]
+
+handler429 = "apps.core.views.too_many_requests"
 
 if settings.DEV_LOGIN:
     urlpatterns.append(path("dev/connexion/<str:role>", dev_login, name="dev-login"))

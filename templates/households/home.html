@@ -49,7 +49,7 @@
 
   {% if membership.is_owner %}
     <h2 class="section-title">Inviter quelqu'un (facultatif)</h2>
-    <p class="muted">Vous pouvez utiliser l'application seul : les invitations ne servent que si d'autres personnes doivent se connecter.</p>
+    <p class="muted">Une invitation ajoute la personne à <strong>votre</strong> foyer : elle verra vos menus et vos courses. Pour que quelqu'un ait son propre foyer, partagez plutôt la page d'inscription{% if signup_open %} (<code>{{ request.scheme }}://{{ request.get_host }}{% url 'account_signup' %}</code>){% endif %}.</p>
     {% if invitations %}
       <ul class="rows">
         {% for invitation in invitations %}

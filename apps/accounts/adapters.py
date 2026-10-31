@@ -1,9 +1,10 @@
 from allauth.account.adapter import DefaultAccountAdapter
+from django.conf import settings
 from django.http import HttpRequest
 
 
-class ClosedAccountAdapter(DefaultAccountAdapter):
-    """Pas d'inscription publique : les comptes naissent d'une invitation (households)."""
+class SignupAdapter(DefaultAccountAdapter):
+    """Inscription libre, fermable par `SIGNUP_OPEN` ; l'invitation reste dans `households`."""
 
     def is_open_for_signup(self, request: HttpRequest) -> bool:
-        return False
+        return settings.SIGNUP_OPEN

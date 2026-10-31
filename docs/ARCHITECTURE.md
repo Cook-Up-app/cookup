@@ -2,6 +2,14 @@
 
 Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`), PostgreSQL Supabase via le pooler transactionnel. Voir `SPEC.md` sections 3 à 5.
 
+## Inscription libre
+
+- `apps/accounts/adapters.SignupAdapter.is_open_for_signup` lit `SIGNUP_OPEN` ; `apps/accounts/forms.SignupForm` ajoute le prénom au formulaire d'allauth. Le foyer est créé à la première visite par `households.services.ensure_household` (une seule voie, comme avant).
+- Isolation : tout reste filtré par `for_household` ; un inscrit n'a qu'une adhésion, la sienne. L'invitation reste le seul moyen de rejoindre un foyer existant.
+- `mfa_required` (middleware) : staff ou superuser uniquement.
+- Limitation de débit : `ACCOUNT_RATE_LIMITS["signup"] = 5/h/ip` dans `DatabaseCache` ; en production `ALLAUTH_TRUSTED_CLIENT_IP_HEADER = x-vercel-forwarded-for` (sans cela, tous les visiteurs partageraient une IP). Réponse 429 en français (`handler429`).
+- Limites connues : pas de vérification d'e-mail ni de réinitialisation autonome (aucun service d'e-mail).
+
 ## État après la refonte front-end
 
 - **Design system** : `tokens.css` (couleurs, espacements, contrastes AA vérifiés par test), `base.css`, `layout.css` (coque), `components.css`, `print.css`. Aucun style ni script en ligne (CSP stricte). Icônes : sprite SVG (`components/icons.html`, balise `{% icon %}`).

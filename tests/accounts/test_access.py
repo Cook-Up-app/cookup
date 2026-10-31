@@ -35,13 +35,13 @@ def _owner_without_mfa(email: str = "nomfa@example.com"):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("name", PAGES_BEHIND_MFA)
-def test_owner_without_mfa_is_sent_to_enrolment(client, name):
+def test_household_owner_does_not_need_mfa(client, name):
     client.force_login(_owner_without_mfa())
 
     response = client.get(reverse(name))
 
-    assert response.status_code == 302
-    assert response["Location"].startswith(reverse("mfa_index"))
+    assert not response.get("Location", "").startswith(reverse("mfa_index"))
+    assert response.status_code in (200, 302)  # 302 : l'assistant d'accueil, foyer neuf
 
 
 @pytest.mark.django_db
@@ -69,7 +69,7 @@ def test_simple_member_does_not_need_mfa(client, name):
 
 
 @pytest.mark.django_db
-def test_admin_can_reach_enrolment_page(client):
+def test_user_can_reach_enrolment_page(client):
     client.force_login(_owner_without_mfa())
 
     assert client.get(reverse("mfa_index")).status_code == 200
@@ -94,7 +94,8 @@ def test_french_paths_are_used():
 
 
 @pytest.mark.django_db
-def test_public_signup_is_closed(client):
+def test_signup_is_refused_when_closed(client, settings):
+    settings.SIGNUP_OPEN = False
     client.post(
         "/compte/signup/",
         {"email": "new@example.com", "password1": PASSWORD, "password2": PASSWORD},

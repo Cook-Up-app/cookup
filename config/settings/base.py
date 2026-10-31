@@ -117,7 +117,11 @@ LOGIN_REDIRECT_URL = "/"
 
 # Inscription fermée (adaptateur), pas d'e-mail : les liens d'invitation et de
 # réinitialisation sont générés par le propriétaire du foyer.
-ACCOUNT_ADAPTER = "apps.accounts.adapters.ClosedAccountAdapter"
+ACCOUNT_ADAPTER = "apps.accounts.adapters.SignupAdapter"
+# Inscription libre : chaque inscrit a son foyer. `SIGNUP_OPEN=false` la ferme.
+SIGNUP_OPEN = env_bool("SIGNUP_OPEN", True)
+ACCOUNT_SIGNUP_FORM_CLASS = "apps.accounts.forms.SignupForm"
+ACCOUNT_RATE_LIMITS = {"signup": "5/h/ip"}  # compteurs dans DatabaseCache (voir CACHES)
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # le modèle utilisateur n'a pas de `username`
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]

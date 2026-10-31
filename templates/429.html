@@ -1,0 +1,10 @@
+{% extends "base_auth.html" %}
+{% load ui %}
+{% block title %}Trop de tentatives{% endblock %}
+{% block content %}
+  <div class="empty">
+    {% icon "clock" %}
+    <h1 class="auth-title">Trop de tentatives</h1>
+    <p>Merci de patienter quelques minutes avant de réessayer.</p>
+  </div>
+{% endblock %}

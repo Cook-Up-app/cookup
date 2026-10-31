@@ -328,11 +328,10 @@ def test_the_assistant_requires_a_session_and_a_post_for_actions(client, db, fre
     assert client.get(reverse("onboarding:dismiss")).status_code == 405
 
 
-def test_owner_without_mfa_is_sent_to_enrolment_before_the_assistant(client, db):
+def test_staff_without_mfa_is_sent_to_enrolment_before_the_assistant(client, db):
     user = make_user("nomfa@example.com", mfa=False)
-    from apps.households import services as household_services
-
-    household_services.create_household(user, "Foyer")
+    user.is_staff = True
+    user.save()
     client.force_login(user)
 
     response = client.get(step_url("foyer"))

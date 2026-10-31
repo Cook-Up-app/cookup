@@ -1,9 +1,11 @@
 import hmac
+import json
 
 from django.conf import settings
 from django.db import Error as DatabaseError
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.templatetags.static import static
 from django.views.decorators.http import require_GET, require_safe
 
 from apps.sources.weekly import run_weekly_import
@@ -11,11 +13,45 @@ from apps.sources.weekly import run_weekly_import
 from . import services
 
 BEARER_PREFIX = "Bearer "
+SHELL_ASSETS = (
+    "css/app.css",
+    "js/outbox.js",
+    "js/offline.js",
+    "js/durations.js",
+    "js/kitchen.js",
+    "js/export.js",
+    "icons/icon-192.png",
+)
 
 
 @require_safe
 def home(request: HttpRequest) -> HttpResponse:
     return render(request, "home.html")
+
+
+@require_safe
+def manifest(request: HttpRequest) -> HttpResponse:
+    return render(request, "pwa/manifest.webmanifest", content_type="application/manifest+json")
+
+
+@require_safe
+def offline(request: HttpRequest) -> HttpResponse:
+    return render(request, "pwa/offline.html")
+
+
+@require_safe
+def service_worker(request: HttpRequest) -> HttpResponse:
+    """Servi à la racine pour que sa portée couvre tout le site (pas sous /static/)."""
+    shell = ["/hors-ligne", "/manifest.webmanifest", *(static(p) for p in SHELL_ASSETS)]
+    response = render(
+        request,
+        "pwa/sw.js",
+        {"version": settings.APP_VERSION, "shell_urls": json.dumps(shell)},
+        content_type="text/javascript; charset=utf-8",
+    )
+    response.headers["Cache-Control"] = "no-cache"  # le navigateur revérifie à chaque démarrage
+    response.headers["Service-Worker-Allowed"] = "/"
+    return response
 
 
 @require_safe
@@ -25,7 +61,9 @@ def health(request: HttpRequest) -> JsonResponse:
         services.check_database()
     except DatabaseError:
         return JsonResponse({"status": "degraded", "database": "down"}, status=503)
-    return JsonResponse({"status": "ok", "database": "up"})
+    return JsonResponse(
+        {"status": "ok", "database": "up", "keepalive": services.keepalive_status()}
+    )
 
 
 def _is_authorized_cron(request: HttpRequest) -> bool:
@@ -38,14 +76,14 @@ def _is_authorized_cron(request: HttpRequest) -> bool:
 
 @require_GET
 def cron_daily(request: HttpRequest) -> JsonResponse:
-    """Tâche quotidienne Vercel Cron ; en M0 : maintien de la base active."""
+    """Tâche quotidienne Vercel Cron : maintien de la base active, purges."""
     if not _is_authorized_cron(request):
         return JsonResponse({"detail": "Non autorisé."}, status=401)
     try:
-        services.keep_database_alive()
+        report = services.run_daily_maintenance()
     except DatabaseError:
         return JsonResponse({"status": "error"}, status=503)
-    return JsonResponse({"status": "ok"})
+    return JsonResponse({"status": "ok", "purged_invitations": report["purged_invitations"]})
 
 
 @require_GET

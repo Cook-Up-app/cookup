@@ -1,13 +1,21 @@
 {% extends "base.html" %}
-{% load shopping_extras %}
+{% load shopping_extras static %}
 {% block title %}Courses{% endblock %}
+{% block extra_head %}<script src="{% static 'js/export.js' %}" defer></script>{% endblock %}
 {% block content %}
+  <div data-shopping data-sync-url="{% url 'shopping:sync' plan.pk %}" data-csrf-cookie="{{ csrf_cookie_name }}">
   <h1>Liste de courses</h1>
+  <p id="sync-status" role="status" aria-live="polite" class="notice" hidden></p>
   <p>Menu du {{ plan.start_date|date:"d/m/Y" }} au {{ plan.end_date|date:"d/m/Y" }} — {{ remaining }} à acheter sur {{ total }}.</p>
   <p>
     <a href="{% url 'planner:detail' plan.pk %}">Menu</a> ·
     <a href="{% url 'shopping:aisles' %}">Ordre des rayons</a> ·
     <a href="{% url 'shopping:pantry' %}">Placard</a>
+  </p>
+  <p class="no-print">
+    <button type="button" data-export="copy">Copier en texte</button>
+    <button type="button" data-export="share">Partager</button>
+    <button type="button" data-export="print">Imprimer</button>
   </p>
   <form method="post" action="{% url 'shopping:regenerate' plan.pk %}">
     {% csrf_token %}<button type="submit">Recalculer depuis le menu</button>
@@ -17,8 +25,8 @@
       <summary><h2 class="inline">{{ aisle }}</h2></summary>
       <ul class="list">
         {% for item in items %}
-          <li class="{% if item.checked %}done{% endif %}">
-            <form method="post" action="{% url 'shopping:toggle' plan.pk item.pk %}">
+          <li class="{% if item.checked %}done{% endif %}" data-item="{{ item.pk }}">
+            <form method="post" action="{% url 'shopping:toggle' plan.pk item.pk %}" data-action="toggle">
               {% csrf_token %}
               <button type="submit" class="check" aria-pressed="{{ item.checked|yesno:'true,false' }}">{% if item.checked %}☑{% else %}☐{% endif %}</button>
             </form>
@@ -26,7 +34,7 @@
             {% if item.recipes %}
               <details><summary>Recettes</summary>{% for recipe in item.recipes %}{{ recipe.1 }}{% if not forloop.last %}, {% endif %}{% endfor %}</details>
             {% elif item.manual %}<em>ajouté à la main</em>{% endif %}
-            <form method="post" action="{% url 'shopping:remove' plan.pk item.pk %}">
+            <form method="post" action="{% url 'shopping:remove' plan.pk item.pk %}" data-action="remove">
               {% csrf_token %}<button type="submit">Retirer</button>
             </form>
           </li>
@@ -37,9 +45,10 @@
     <p>Aucun article : le menu ne contient pas de recette, ou tout est déjà au placard.</p>
   {% endfor %}
   <h2>Ajouter un article</h2>
-  <form method="post" action="{% url 'shopping:add' plan.pk %}">
+  <form method="post" action="{% url 'shopping:add' plan.pk %}" data-action="add">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Ajouter</button>
   </form>
+  </div>
 {% endblock %}

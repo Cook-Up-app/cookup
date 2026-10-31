@@ -9,6 +9,7 @@ urlpatterns = [
     path("courses/<uuid:plan_pk>/", views.shopping_detail, name="detail"),
     path("courses/<uuid:plan_pk>/regenerer", views.shopping_regenerate, name="regenerate"),
     path("courses/<uuid:plan_pk>/ajouter", views.item_add, name="add"),
+    path("courses/<uuid:plan_pk>/synchroniser", views.shopping_sync, name="sync"),
     path("courses/<uuid:plan_pk>/lignes/<uuid:item_pk>/cocher", views.item_toggle, name="toggle"),
     path(
         "courses/<uuid:plan_pk>/lignes/<uuid:item_pk>/supprimer", views.item_remove, name="remove"

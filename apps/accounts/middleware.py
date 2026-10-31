@@ -27,6 +27,9 @@ PUBLIC_URL_NAMES = frozenset(
         "mfa_login_webauthn",
         "accept-invitation",
         "health",
+        "manifest",
+        "service-worker",
+        "offline",
         "cron-daily",
         "cron-import",
     }

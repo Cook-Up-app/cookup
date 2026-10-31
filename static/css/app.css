@@ -117,3 +117,61 @@ button {
   padding: 0 0.4rem;
   font-size: 0.8rem;
 }
+
+.kitchen-active .kitchen-steps {
+  list-style: none;
+  padding: 0;
+}
+
+.kitchen-active .kitchen-steps li {
+  font-size: 1.6rem;
+  line-height: 1.5;
+}
+
+.kitchen-nav {
+  display: flex;
+  gap: var(--space);
+}
+
+.kitchen-nav button {
+  flex: 1;
+  min-height: 56px;
+  font-size: 1.2rem;
+}
+
+.timer.ring {
+  font-weight: bold;
+  border: 2px solid var(--color-accent);
+  padding: 0.5rem;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.6rem var(--space);
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+@media print {
+  .no-print,
+  .nav,
+  form,
+  button,
+  #sync-status {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  .done span {
+    text-decoration: line-through;
+  }
+}

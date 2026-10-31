@@ -22,6 +22,28 @@ class SearchForm(forms.Form):
     cookeo_only = forms.BooleanField(label="Compatible Cookeo", required=False)
 
 
+class FeedbackForm(forms.Form):
+    """Avis du foyer : note, favori, exclusion (alimente le moteur de menus)."""
+
+    rating = forms.TypedChoiceField(
+        label="Note",
+        required=False,
+        coerce=int,
+        empty_value=None,
+        choices=[("", "Pas de note"), *((str(n), f"{n} / 5") for n in range(1, 6))],
+    )
+    favorite = forms.BooleanField(label="Favori", required=False)
+    excluded = forms.BooleanField(label="Ne plus me proposer cette recette", required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("favorite") and cleaned.get("excluded"):
+            raise forms.ValidationError(
+                "Une recette ne peut pas être à la fois favorite et exclue."
+            )
+        return cleaned
+
+
 class ImportUrlForm(forms.Form):
     url = forms.URLField(label="Adresse de la recette", max_length=500, assume_scheme="https")
 

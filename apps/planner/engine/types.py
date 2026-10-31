@@ -45,7 +45,9 @@ class DinerView:
     strict_allergens: frozenset[str] = frozenset()
     strict_word_sets: frozenset[frozenset[str]] = frozenset()  # « autre ingrédient » strict
     diets: frozenset[str] = frozenset()
-    taste: Mapping[int, int] = field(default_factory=dict)  # ingrédient -> -2..2
+    taste: Mapping[int, float] = field(
+        default_factory=dict
+    )  # ingrédient -> -2..2 (appris ou saisi)
 
 
 @dataclass(frozen=True)

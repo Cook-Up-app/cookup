@@ -7,6 +7,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db import transaction
+from django.utils import timezone
 
 from apps.catalog.models import Ingredient, RecipeIngredient
 from apps.core.reference import Aisle
@@ -147,7 +148,8 @@ def list_for(plan: MenuPlan) -> ShoppingList:
 
 def toggle_checked(item: ShoppingItem) -> ShoppingItem:
     item.checked = not item.checked
-    item.save(update_fields=["checked"])
+    item.checked_at = timezone.now()
+    item.save(update_fields=["checked", "checked_at"])
     return item
 
 

@@ -5,9 +5,10 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods, require_safe
+from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
 from apps.core.reference import Allergen
+from apps.households.permissions import household_required
 from apps.sources.exceptions import SourceError, SourceUnavailable
 from apps.sources.importer import (
     build_source_for,
@@ -18,8 +19,8 @@ from apps.sources.importer import (
 from apps.sources.models import ImportJob
 
 from . import services
-from .forms import ImportUrlForm, ManualRecipeForm, SearchForm
-from .models import Recipe
+from .forms import FeedbackForm, ImportUrlForm, ManualRecipeForm, SearchForm
+from .models import Recipe, RecipeFeedback
 
 IMPORTS_PER_HOUR = 20
 
@@ -44,11 +45,19 @@ def recipe_list(request: HttpRequest) -> HttpResponse:
 
 
 @require_safe
+@household_required
 def recipe_detail(request: HttpRequest, pk) -> HttpResponse:
     recipe = get_object_or_404(Recipe.objects.prefetch_related("ingredients__ingredient"), pk=pk)
     allergens, uncertain = services.recipe_allergens(recipe)
+    feedback = RecipeFeedback.objects.for_household(request.household).filter(recipe=recipe).first()
+    initial = (
+        {"rating": feedback.rating, "favorite": feedback.favorite, "excluded": feedback.excluded}
+        if feedback
+        else {}
+    )
     context = {
         "recipe": recipe,
+        "feedback_form": FeedbackForm(initial=initial),
         "allergens": [Allergen(code).label for code in allergens],
         "allergens_uncertain": uncertain,
     }
@@ -61,6 +70,34 @@ def _import_quota_reached(user) -> bool:
         ImportJob.objects.filter(requested_by=user, created_at__gte=since).count()
         >= IMPORTS_PER_HOUR
     )
+
+
+@require_POST
+@household_required
+def recipe_feedback(request: HttpRequest, pk) -> HttpResponse:
+    recipe = get_object_or_404(Recipe, pk=pk)
+    form = FeedbackForm(request.POST)
+    if form.is_valid():
+        RecipeFeedback.objects.update_or_create(
+            household=request.household,
+            recipe=recipe,
+            defaults={
+                "rating": form.cleaned_data["rating"],
+                "favorite": form.cleaned_data["favorite"],
+                "excluded": form.cleaned_data["excluded"],
+            },
+        )
+        messages.success(request, "Avis enregistré : il guidera vos prochains menus.")
+    else:
+        messages.error(request, "Avis invalide : " + " ".join(form.non_field_errors()))
+    return redirect("catalog:detail", pk=recipe.pk)
+
+
+@require_safe
+def recipe_kitchen(request: HttpRequest, pk) -> HttpResponse:
+    """Mode cuisine : étapes en grand, minuteurs, écran allumé (progressive enhancement)."""
+    recipe = get_object_or_404(Recipe, pk=pk)
+    return render(request, "catalog/kitchen.html", {"recipe": recipe})
 
 
 @require_http_methods(["GET", "POST"])

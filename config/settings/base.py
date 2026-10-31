@@ -154,6 +154,9 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 
+# Identifie le déploiement : change le nom des caches du service worker à chaque version.
+APP_VERSION = env_str("VERCEL_GIT_COMMIT_SHA", "dev")[:12]
+
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 

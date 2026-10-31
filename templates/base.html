@@ -4,12 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Menu du jour{% endblock %}</title>
+  <meta name="theme-color" content="#4f7a3a">
+  <link rel="manifest" href="{% url 'core:manifest' %}">
+  <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% block extra_head %}{% endblock %}
+  <script src="{% static 'js/outbox.js' %}" defer></script>
+  <script src="{% static 'js/offline.js' %}" defer></script>
 </head>
 <body>
   {% if user.is_authenticated %}
-    <nav class="nav" aria-label="Navigation principale">
+    <nav class="nav no-print" aria-label="Navigation principale">
       <a href="{% url 'core:home' %}">Menu du jour</a>
       <a href="{% url 'households:home' %}">Foyer</a>
       <a href="{% url 'planner:list' %}">Menus</a>

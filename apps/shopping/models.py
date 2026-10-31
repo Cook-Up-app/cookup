@@ -42,6 +42,7 @@ class ShoppingItem(models.Model):
     unit = models.CharField(max_length=20, blank=True)
     aisle = models.CharField(max_length=20, choices=Aisle.choices, default=Aisle.MISC)
     checked = models.BooleanField(default=False)
+    checked_at = models.DateTimeField(null=True, blank=True)  # heure du dernier geste (synchro)
     hidden = models.BooleanField(default=False)  # retirée à la main : ne revient pas au recalcul
     optional = models.BooleanField(default=False)
     manual = models.BooleanField(default=False)

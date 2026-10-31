@@ -29,6 +29,13 @@
     <p class="notice">Certains ingrédients n'ont pas pu être reconnus avec certitude : vérifiez les allergènes vous-même.</p>
   {% endif %}
   <p class="notice">Cette application aide à éviter les allergènes déclarés mais n'est pas une garantie médicale : relisez toujours les étiquettes.</p>
+  {% if recipe.steps %}<p><a class="button" href="{% url 'catalog:kitchen' recipe.pk %}">Mode cuisine</a></p>{% endif %}
+  <h2>Votre avis</h2>
+  <form method="post" action="{% url 'catalog:feedback' recipe.pk %}">
+    {% csrf_token %}
+    {{ feedback_form.as_p }}
+    <button type="submit">Enregistrer l'avis</button>
+  </form>
   <h2>Ingrédients</h2>
   <ul class="list">
     {% for line in recipe.ingredients.all %}

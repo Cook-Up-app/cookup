@@ -21,6 +21,7 @@ from apps.households.models import (
 )
 
 from .engine import Context, DinerView, EngineSettings, History, RecipeView
+from .learning import learn_tastes
 from .models import MenuSlot
 from .seasons import seasonal_names
 
@@ -107,6 +108,24 @@ def _view(recipe: Recipe, lines, ingredients, equipment) -> RecipeView:
     )
 
 
+def load_learned_tastes(household) -> dict[int, float]:
+    """Goûts déduits des notes du foyer ; les goûts saisis à la main les remplacent."""
+    ratings = {
+        str(recipe_id): rating
+        for recipe_id, rating in RecipeFeedback.objects.for_household(household)
+        .exclude(rating=None)
+        .values_list("recipe_id", "rating")
+    }
+    if not ratings:
+        return {}
+    lines = defaultdict(set)
+    for recipe_id, ingredient_id in RecipeIngredient.objects.filter(
+        recipe_id__in=list(ratings), ingredient__isnull=False
+    ).values_list("recipe_id", "ingredient_id"):
+        lines[str(recipe_id)].add(ingredient_id)
+    return learn_tastes(ratings, {k: frozenset(v) for k, v in lines.items()})
+
+
 def load_diners(household, diner_ids=None) -> list[DinerView]:
     queryset = Diner.objects.for_household(household).prefetch_related("restrictions", "tastes")
     if diner_ids is not None:
@@ -115,11 +134,13 @@ def load_diners(household, diner_ids=None) -> list[DinerView]:
     for ingredient_id, allergens in Ingredient.objects.values_list("id", "allergens"):
         for allergen in allergens:
             allergen_ingredients[allergen].add(ingredient_id)
-    return [_diner_view(d, allergen_ingredients) for d in queryset]
+    learned = load_learned_tastes(household)
+    return [_diner_view(d, allergen_ingredients, learned) for d in queryset]
 
 
-def _diner_view(diner: Diner, allergen_ingredients) -> DinerView:
-    strict, words, taste = set(), set(), {t.ingredient_id: t.score for t in diner.tastes.all()}
+def _diner_view(diner: Diner, allergen_ingredients, learned) -> DinerView:
+    explicit = {t.ingredient_id: t.score for t in diner.tastes.all()}
+    strict, words, taste = set(), set(), {**learned, **explicit}
     for restriction in diner.restrictions.all():
         target_words = frozenset(stem_key(restriction.ingredient_name).split())
         if restriction.severity == STRICT:

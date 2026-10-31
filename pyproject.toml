@@ -55,4 +55,4 @@ max-complexity = 10
 "apps/planner/engine/*" = ["S311"]  # graine reproductible, pas de cryptographie
 "apps/catalog/ingredient_catalog.py" = ["E501"]
 "apps/catalog/starter_data.py" = ["E501"]
-"tests/**" = ["S101", "S105", "S106", "S311"]
+"tests/**" = ["S101", "S105", "S106", "S311", "S603"]

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ recipe.title }} — mode cuisine{% endblock %}
+{% block extra_head %}<script src="{% static 'js/durations.js' %}" defer></script>
+  <script src="{% static 'js/kitchen.js' %}" defer></script>{% endblock %}
+{% block content %}
+  <div data-kitchen class="kitchen">
+    <h1>{{ recipe.title }}</h1>
+    <p><a href="{% url 'catalog:detail' recipe.pk %}">Retour à la fiche</a></p>
+    {% if recipe.cookeo_compatible and recipe.cookeo_program.mode %}
+      <p class="banner"><strong>Cookeo</strong> — {{ recipe.cookeo_program.mode }}{% if recipe.cookeo_program.pressure_minutes %}, {{ recipe.cookeo_program.pressure_minutes }} min sous pression{% endif %}{% if recipe.cookeo_program.extra_crisp %}, finition Extra Crisp{% endif %}</p>
+    {% endif %}
+    {% if recipe.steps %}
+      <p data-counter class="kitchen-counter" aria-live="polite"></p>
+      <ol class="kitchen-steps">
+        {% for step in recipe.steps %}<li data-step>{{ step }}</li>{% endfor %}
+      </ol>
+      <div class="kitchen-nav">
+        <button type="button" data-prev>Précédente</button>
+        <button type="button" data-next>Suivante</button>
+      </div>
+      <div data-timers aria-label="Minuteurs"></div>
+      <h2>Ingrédients</h2>
+      <ul class="list">
+        {% for line in recipe.ingredients.all %}<li>{{ line.raw_text }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p>Les étapes ne sont pas conservées pour cette recette : consultez la <a href="{{ recipe.url }}" rel="noopener noreferrer nofollow">recette sur le site d'origine</a>.</p>
+    {% endif %}
+  </div>
+{% endblock %}

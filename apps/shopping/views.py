@@ -1,5 +1,8 @@
+import json
+
+from django.conf import settings
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
@@ -8,7 +11,7 @@ from apps.households.models import HouseholdSettings
 from apps.households.permissions import household_required
 from apps.planner.models import MenuPlan
 
-from . import services
+from . import services, sync
 from .forms import AisleOrderForm, ItemForm, PantryForm
 from .models import PantryItem, ShoppingItem
 
@@ -48,6 +51,7 @@ def shopping_detail(request: HttpRequest, plan_pk) -> HttpResponse:
         "form": ItemForm(),
         "remaining": sum(1 for i in items if not i.checked),
         "total": len(items),
+        "csrf_cookie_name": settings.CSRF_COOKIE_NAME,
     }
     return render(request, "shopping/detail.html", context)
 
@@ -58,6 +62,25 @@ def shopping_regenerate(request: HttpRequest, plan_pk) -> HttpResponse:
     services.sync_list(_plan(request, plan_pk))
     messages.success(request, "Liste recalculée : cases cochées et ajouts conservés.")
     return redirect("shopping:detail", plan_pk=plan_pk)
+
+
+@require_POST
+@household_required
+def shopping_sync(request: HttpRequest, plan_pk) -> JsonResponse:
+    """Reçoit la file d'opérations d'un client hors ligne ; répond avec l'état de la liste."""
+    plan = _plan(request, plan_pk)
+    try:
+        body = json.loads(request.body or b"{}")
+        operations = body.get("operations", [])
+    except (ValueError, AttributeError):
+        return JsonResponse({"detail": "Requête invalide."}, status=400)
+    if not isinstance(operations, list):
+        return JsonResponse({"detail": "Requête invalide."}, status=400)
+    shopping_list = services.list_for(plan)
+    results = sync.apply_operations(shopping_list, operations)
+    response = JsonResponse({"results": results, **sync.snapshot(shopping_list)})
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @require_POST

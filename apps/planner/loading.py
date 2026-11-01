@@ -1,8 +1,11 @@
 """Frontière base de données : convertit le catalogue et le foyer en objets du moteur."""
 
 from collections import Counter, defaultdict
+from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import date, timedelta
 
+from apps.catalog.cuisine import infer_cuisine, is_exotic, spice_level
 from apps.catalog.models import (
     Ingredient,
     Recipe,
@@ -10,9 +13,10 @@ from apps.catalog.models import (
     RecipeFeedback,
     RecipeIngredient,
 )
-from apps.catalog.text import fold, singular, stem_key
+from apps.catalog.text import fold, singular
 from apps.catalog.traits import is_perishable
-from apps.core.reference import Aisle, Equipment
+from apps.core.reference import Aisle, Cuisine, Equipment
+from apps.households import restrictions
 from apps.households.models import (
     Diner,
     DinerRestriction,
@@ -83,7 +87,9 @@ def _view(recipe: Recipe, lines, ingredients, equipment) -> RecipeView:
     )
     minutes = [m for m in (recipe.prep_minutes, recipe.cook_minutes) if m is not None]
     present = [ing for ing in known if ing is not None]
-    cuisine = next((t.split(":", 1)[1] for t in recipe.tags if t.startswith("cuisine:")), "")
+    tags = frozenset(recipe.tags)
+    style_texts = [recipe.title, *(raw for _, _, raw in lines)]
+    cuisine = infer_cuisine(tags, style_texts)
     required = set(equipment) | ({Equipment.COOKEO.value} if recipe.cookeo_compatible else set())
     return RecipeView(
         id=str(recipe.id),
@@ -101,9 +107,11 @@ def _view(recipe: Recipe, lines, ingredients, equipment) -> RecipeView:
         perishable_ids=frozenset(ing.id for ing in present if is_perishable(ing.aisle)),
         produce_ids=frozenset(ing.id for ing in present if ing.aisle == Aisle.FRUITS_VEGETABLES),
         words=recipe_words([raw for _, _, raw in lines]),
-        tags=frozenset(recipe.tags),
+        tags=tags,
         protein=_protein([ing.protein for ing in present]),
         cuisine=cuisine,
+        spice=spice_level(tags, style_texts),
+        exotic=is_exotic(cuisine),
         cost_level=recipe.cost_level,
     )
 
@@ -126,30 +134,52 @@ def load_learned_tastes(household) -> dict[int, float]:
     return learn_tastes(ratings, {k: frozenset(v) for k, v in lines.items()})
 
 
+@dataclass(frozen=True)
+class IngredientLookup:
+    """Ingrédients du catalogue par allergène déclaré et par mots du nom (chargés une fois)."""
+
+    by_allergen: Mapping[str, frozenset[int]]
+    words: Mapping[int, frozenset[str]]
+
+    def matching(self, coverage: restrictions.Coverage) -> set[int]:
+        ids = {i for allergen in coverage.allergens for i in self.by_allergen.get(allergen, ())}
+        ids |= {
+            i for i, words in self.words.items() if any(ws <= words for ws in coverage.word_sets)
+        }
+        return ids
+
+
+def load_ingredient_lookup() -> IngredientLookup:
+    by_allergen = defaultdict(set)
+    words = {}
+    for ingredient_id, name, aliases, allergens in Ingredient.objects.values_list(
+        "id", "name", "aliases", "allergens"
+    ):
+        words[ingredient_id] = restrictions.word_set(" ".join([name, *aliases]))
+        for allergen in allergens:
+            by_allergen[allergen].add(ingredient_id)
+    return IngredientLookup({k: frozenset(v) for k, v in by_allergen.items()}, words)
+
+
 def load_diners(household, diner_ids=None) -> list[DinerView]:
     queryset = Diner.objects.for_household(household).prefetch_related("restrictions", "tastes")
     if diner_ids is not None:
         queryset = queryset.filter(pk__in=diner_ids)
-    allergen_ingredients = defaultdict(set)
-    for ingredient_id, allergens in Ingredient.objects.values_list("id", "allergens"):
-        for allergen in allergens:
-            allergen_ingredients[allergen].add(ingredient_id)
+    lookup = load_ingredient_lookup()
     learned = load_learned_tastes(household)
-    return [_diner_view(d, allergen_ingredients, learned) for d in queryset]
+    return [_diner_view(d, lookup, learned) for d in queryset]
 
 
-def _diner_view(diner: Diner, allergen_ingredients, learned) -> DinerView:
+def _diner_view(diner: Diner, lookup: IngredientLookup, learned) -> DinerView:
     explicit = {t.ingredient_id: t.score for t in diner.tastes.all()}
     strict, words, taste = set(), set(), {**learned, **explicit}
     for restriction in diner.restrictions.all():
-        target_words = frozenset(stem_key(restriction.ingredient_name).split())
+        covered = restriction.coverage
         if restriction.severity == STRICT:
-            if restriction.allergen:
-                strict.add(restriction.allergen)
-            if target_words:
-                words.add(target_words)
-        elif restriction.allergen:
-            taste.update({i: AVOID_SCORE for i in allergen_ingredients[restriction.allergen]})
+            strict |= covered.allergens
+            words |= covered.word_sets
+        else:
+            taste.update({i: AVOID_SCORE for i in lookup.matching(covered)})
     return DinerView(
         id=str(diner.pk),
         name=diner.first_name,
@@ -208,6 +238,11 @@ def build_context(
         weights=settings.weights or {},
         wanted_tags=frozenset(extra.get("wanted_tags", ())),
         allow_cookeo_split=bool(extra.get("allow_cookeo_split", False)),
+        liked_cuisines=frozenset(settings.liked_cuisines),
+        avoided_cuisines=frozenset(settings.avoided_cuisines),
+        spice_tolerance=settings.spice_tolerance,
+        exoticism=settings.exoticism,
+        cuisine_labels={c.value: str(c.label) for c in Cuisine},
     )
     return Context(
         diners={d.id: d for d in diners},

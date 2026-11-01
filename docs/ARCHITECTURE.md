@@ -2,6 +2,14 @@
 
 Un projet Django unique, déployé comme une fonction Vercel (`config/wsgi.py`), PostgreSQL Supabase via le pooler transactionnel. Voir `SPEC.md` sections 3 à 5.
 
+## Allergies, placard et styles
+
+- `core/lexicon.py` : synonymes d'allergènes et familles d'aliments (données seules). `households/restrictions.py` : reconnaissance d'un texte (allergène > famille > catalogue > libre) et exclusion réelle (`Coverage` : allergènes déclarés + jeux de mots). `DinerRestriction.food_group` s'ajoute à `allergen` et `ingredient_name`.
+- Moteur : une restriction stricte alimente `strict_allergens` et `strict_word_sets` (règle dure) ; une restriction « intolérance/à éviter » abaisse le goût des ingrédients du catalogue concernés (auparavant ignorée pour le texte libre).
+- Placard : `PantryBulkForm` (un champ par rayon, une seule requête), `shopping.services.stock_always` (`ignore_conflicts`, l'existant reste intact).
+- Styles : `HouseholdSettings.liked_cuisines/avoided_cuisines/spice_tolerance/exoticism` ; `catalog/cuisine.py` déduit cuisine et piment ; critère `planner/engine/style.py` (poids 10, ne filtre jamais).
+- Limite connue : la déduction de cuisine est heuristique (mots-clés) ; une étiquette `cuisine:xxx` sur la recette prime.
+
 ## Inscription libre
 
 - `apps/accounts/adapters.SignupAdapter.is_open_for_signup` lit `SIGNUP_OPEN` ; `apps/accounts/forms.SignupForm` ajoute le prénom au formulaire d'allauth. Le foyer est créé à la première visite par `households.services.ensure_household` (une seule voie, comme avant).

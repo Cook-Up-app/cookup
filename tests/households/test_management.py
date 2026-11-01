@@ -68,7 +68,7 @@ def test_owner_adds_diner_with_strict_allergy(owner_client):
     diner = Diner.objects.get(first_name="Léa")
     owner_client.post(
         reverse("households:restriction-add", args=[diner.pk]),
-        {"allergen": Allergen.TREE_NUTS, "severity": "strict_allergy"},
+        {"allergens": [Allergen.TREE_NUTS], "severity": "strict_allergy"},
     )
 
     assert response.status_code == 302

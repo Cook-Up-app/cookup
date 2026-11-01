@@ -23,6 +23,36 @@ class Allergen(models.TextChoices):
     MOLLUSCS = "molluscs", _("Mollusques")
 
 
+class FoodGroup(models.TextChoices):
+    """Familles d'aliments qu'on peut exclure d'un mot (membres : `apps.core.lexicon`)."""
+
+    LEGUMES_PULSES = "pulses", _("Légumineuses")
+    CITRUS = "citrus", _("Agrumes")
+    NIGHTSHADES = "nightshades", _("Solanacées")
+    CRUCIFEROUS = "cruciferous", _("Crucifères")
+    ALLIUMS = "alliums", _("Ail, oignon et poireau")
+    MUSHROOMS = "mushrooms", _("Champignons")
+    RED_FRUITS = "red_fruits", _("Fruits rouges")
+    STONE_FRUITS = "stone_fruits", _("Fruits à noyau")
+    SEAFOOD = "seafood", _("Fruits de mer")
+
+
+class Cuisine(models.TextChoices):
+    """Styles de cuisine des préférences du foyer ; déduits des recettes (`catalog.cuisine`)."""
+
+    FRENCH = "french", _("Française traditionnelle")
+    ITALIAN = "italian", _("Italienne")
+    MEDITERRANEAN = "mediterranean", _("Méditerranéenne")
+    ORIENTAL = "oriental", _("Orientale et maghrébine")
+    ASIAN = "asian", _("Asiatique")
+    INDIAN = "indian", _("Indienne")
+    MEXICAN = "mexican", _("Mexicaine")
+
+
+# Cuisines « d'ailleurs » pour le curseur d'exotisme.
+EXOTIC_CUISINES = frozenset({Cuisine.ORIENTAL, Cuisine.ASIAN, Cuisine.INDIAN, Cuisine.MEXICAN})
+
+
 class Diet(models.TextChoices):
     VEGETARIAN = "vegetarian", _("Végétarien")
     VEGAN = "vegan", _("Végétalien")

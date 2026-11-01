@@ -30,6 +30,16 @@ USE_DIRECT_DATABASE=1 uv run --env-file .env python manage.py createsuperuser
 
 Connectez-vous sur `/connexion` et activez une passkey ou un TOTP sur `/compte/securite` (obligatoire pour les administrateurs). Le foyer « Mon foyer » (4 portions) est créé automatiquement. Inviter d'autres personnes est facultatif : le lien d'invitation est affiché une seule fois et n'expire pas. Les liens de réinitialisation de mot de passe se génèrent de la même façon.
 
+## Allergies, placard et styles de cuisine
+
+- **Allergies** (fiche d'un convive) : on choisit la gravité, on coche des allergènes et des familles d'aliments (légumineuses, agrumes, fruits de mer…), et/ou on écrit d'autres aliments séparés par des virgules. Singulier ou pluriel, accents et majuscules sont sans importance. Chaque mot est cherché dans cet ordre : allergène officiel (« amande » → fruits à coque, par prudence), famille, catalogue, sinon texte libre (signalé : seul le texte des recettes est vérifié). L'application dit ce qui a été retenu. Les familles et leurs aliments sont dans `apps/core/lexicon.py`.
+- **Placard** : cocher plusieurs produits par rayon (avec recherche) et enregistrer en une fois ; les produits de base et ceux déjà au placard ne sont pas proposés.
+- **Styles de cuisine** (`/foyer/styles/`, et une étape de l'assistant) : cuisines aimées ou évitées, tolérance au piment, goût des cuisines d'ailleurs. Ils influencent le score des menus (critère « style », poids réglable) sans jamais exclure une recette. La cuisine d'une recette est déduite de son titre et de ses ingrédients (`apps/catalog/cuisine.py`).
+
+```bash
+make migrate   # migration 0007 : familles d'aliments et styles de cuisine
+```
+
 ## Inscription libre
 
 `/inscription` : toute personne peut créer un compte (prénom, e-mail, mot de passe) et obtient **son propre foyer**, sans double authentification. Les invitations restent disponibles pour ajouter quelqu'un à un foyer existant. La double authentification n'est obligatoire que pour les administrateurs de l'application (`is_staff`). Fermer les inscriptions : `SIGNUP_OPEN=false`. Limite : 5 inscriptions par heure et par IP (compteur en base ; en production, IP lue dans `x-vercel-forwarded-for`). Pas encore d'e-mail : un mot de passe oublié se traite depuis l'administration.

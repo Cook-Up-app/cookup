@@ -19,5 +19,6 @@ urlpatterns = [
     path("restrictions/<uuid:pk>/supprimer", views.restriction_delete, name="restriction-delete"),
     path("convives/<uuid:pk>/gouts", views.diner_tastes, name="diner-tastes"),
     path("preferences/", views.preferences, name="preferences"),
+    path("styles/", views.styles, name="styles"),
     path("equipements/", views.equipment, name="equipment"),
 ]

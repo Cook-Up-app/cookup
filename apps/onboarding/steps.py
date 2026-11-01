@@ -6,8 +6,9 @@ Ajouter une étape = écrire une classe décorée par `@step(...)` ; l'ordre est
 from dataclasses import dataclass
 from typing import ClassVar
 
-from apps.core.reference import Allergen
+from apps.core.reference import Cuisine
 from apps.households import services as household_services
+from apps.households.forms import StylesForm
 from apps.households.models import (
     Diner,
     DinerRestriction,
@@ -118,17 +119,18 @@ class AllergiesStep(Step):
     per_diner = True
 
     def form(self, household, diner, data=None):
-        current = diner.restrictions.filter(severity=STRICT).exclude(allergen="")
-        return forms.AllergiesForm(data, initial={"allergens": [r.allergen for r in current]})
+        current = diner.restrictions.filter(severity=STRICT)
+        initial = {
+            "allergens": [r.allergen for r in current if r.allergen],
+            "groups": [r.food_group for r in current if r.food_group],
+        }
+        return forms.AllergiesForm(data, initial=initial)
 
     def save(self, household, diner, form) -> None:
-        wanted = set(form.cleaned_data["allergens"])
-        strict = diner.restrictions.filter(severity=STRICT).exclude(allergen="")
-        strict.exclude(allergen__in=wanted).delete()
-        have = set(strict.values_list("allergen", flat=True))
-        DinerRestriction.objects.bulk_create(
-            DinerRestriction(diner=diner, allergen=code, severity=STRICT) for code in wanted - have
-        )
+        data = form.cleaned_data
+        household_services.sync_strict_selection(diner, data["allergens"], data["groups"])
+        extra = household_services.targets_from_input([], [], data["other"])
+        household_services.add_restrictions(diner, STRICT, extra)
 
 
 @step
@@ -275,6 +277,19 @@ class TastesStep(Step):
 
 
 @step
+class StylesStep(Step):
+    slug = "styles"
+    question = "Quels styles de cuisine aimez-vous ?"
+    help = "Facultatif : ces préférences orientent les menus sans jamais exclure une recette. Modifiables à tout moment."
+
+    def form(self, household, diner, data=None):
+        return StylesForm(data, instance=_settings(household))
+
+    def save(self, household, diner, form) -> None:
+        form.save()
+
+
+@step
 class DoneStep(Step):
     slug = "fin"
     question = "Tout est prêt !"
@@ -290,7 +305,7 @@ class DoneStep(Step):
 
 ORDER = (
     "foyer", "portions", "convives", "allergies", "regimes", "equipements", "repas",
-    "temps-semaine", "temps-weekend", "budget", "restes", "gouts", "fin",
+    "temps-semaine", "temps-weekend", "budget", "restes", "gouts", "styles", "fin",
 )  # fmt: skip
 
 
@@ -313,18 +328,16 @@ def summary(household) -> list[tuple[str, str]]:
     equipment = Equipment.objects.filter(
         pk__in=HouseholdEquipment.objects.filter(household=household).values("equipment_id")
     )
-    allergens = {
-        str(Allergen(code).label)
-        for code in DinerRestriction.objects.for_household(household)
-        .filter(severity=STRICT)
-        .exclude(allergen="")
-        .values_list("allergen", flat=True)
+    allergies = {
+        r.label for r in DinerRestriction.objects.for_household(household).filter(severity=STRICT)
     }
+    liked = [str(Cuisine(code).label).lower() for code in settings.liked_cuisines]
     return [
         ("Foyer", f"{household.name}, {household.default_servings} portions"),
         ("Convives", ", ".join(d.first_name for d in diners) or "aucun pour le moment"),
-        ("Allergies", ", ".join(sorted(allergens)) or "aucune"),
+        ("Allergies", ", ".join(sorted(allergies)) or "aucune"),
         ("Équipements", ", ".join(e.label for e in equipment) or "aucun"),
         ("Temps", f"{settings.max_minutes_weekday} min en semaine, {settings.max_minutes_weekend} min le week-end"),
+        ("Cuisines aimées", ", ".join(liked) or "pas de préférence"),
         ("Budget", {1: "économique", 2: "raisonnable", 3: "confortable"}[settings.budget_level]),
     ]  # fmt: skip

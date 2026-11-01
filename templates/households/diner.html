@@ -19,7 +19,8 @@
       {% for restriction in diner.restrictions.all %}
         <li class="row">
           <span class="row-main">
-            <span class="row-title">{% if restriction.allergen %}{{ restriction.get_allergen_display }}{% else %}{{ restriction.ingredient_name }}{% endif %}</span>
+            <span class="row-title">{{ restriction.label }}</span>
+            {% if restriction.detail %}<span class="row-sub">{{ restriction.detail }}</span>{% endif %}
           </span>
           <span class="badge {% if restriction.severity == 'strict_allergy' %}badge--danger{% else %}badge--warning{% endif %}">{{ restriction.get_severity_display }}</span>
           {% if request.membership.is_owner %}
@@ -36,11 +37,16 @@
 
   {% if request.membership.is_owner %}
     <section class="card form-card mt">
-      <h3>Ajouter une restriction</h3>
+      <h3>Ajouter des restrictions</h3>
+      <p class="muted">Choisissez la gravité, puis cochez tout ce qui s'applique et/ou écrivez d'autres aliments : tout est enregistré en une fois.</p>
       <form method="post" action="{% url 'households:restriction-add' diner.pk %}" class="stack">
         {% csrf_token %}
-        {{ restriction_form }}
-        <button type="submit" class="btn btn-primary">Ajouter la restriction</button>
+        {{ restriction_form.non_field_errors }}
+        {{ restriction_form.severity.as_field_group }}
+        {{ restriction_form.allergens.as_field_group }}
+        {{ restriction_form.groups.as_field_group }}
+        {{ restriction_form.other.as_field_group }}
+        <button type="submit" class="btn btn-primary">Ajouter</button>
       </form>
     </section>
 

@@ -31,6 +31,8 @@ class RecipeView:
     tags: frozenset[str] = frozenset()
     protein: str = ""
     cuisine: str = ""
+    spice: int = 0  # 0 (doux) à 3 (très piquant)
+    exotic: bool = False  # cuisine « d'ailleurs » (voir `core.reference.EXOTIC_CUISINES`)
     cost_level: int | None = None
 
     @property
@@ -92,6 +94,11 @@ class EngineSettings:
     weights: Mapping[str, int] = field(default_factory=dict)
     wanted_tags: frozenset[str] = frozenset()
     allow_cookeo_split: bool = False  # cuire en plusieurs fois au-delà de la cuve de 6 L
+    liked_cuisines: frozenset[str] = frozenset()
+    avoided_cuisines: frozenset[str] = frozenset()
+    spice_tolerance: int = 1  # 0 : rien d'épicé … 3 : très épicé
+    exoticism: int = 1  # 0 : cuisine familière … 2 : goût des cuisines d'ailleurs
+    cuisine_labels: Mapping[str, str] = field(default_factory=dict)  # code -> libellé affichable
 
 
 @dataclass(frozen=True)

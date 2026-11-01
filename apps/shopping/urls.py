@@ -16,5 +16,6 @@ urlpatterns = [
         "courses/<uuid:plan_pk>/lignes/<uuid:item_pk>/supprimer", views.item_remove, name="remove"
     ),
     path("foyer/placard/", views.pantry, name="pantry"),
+    path("foyer/placard/ajouter/", views.pantry_bulk_add, name="pantry-bulk-add"),
     path("foyer/placard/<int:pk>/supprimer", views.pantry_remove, name="pantry-remove"),
 ]

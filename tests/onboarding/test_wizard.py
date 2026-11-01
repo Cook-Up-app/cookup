@@ -345,3 +345,37 @@ def test_step_pages_have_no_inline_script_and_a_single_h1(fresh):
     page = client.get(step_url("budget")).content.decode()
 
     assert page.count("<h1") == 1 and not re.search(r"<script(?![^>]*\bsrc=)[^>]*>", page)
+
+
+def test_the_allergy_step_accepts_families_and_free_text(fresh):
+    client, user = fresh
+    lea = Diner.objects.create(household=household_of(user), first_name="Léa")
+
+    client.post(
+        step_url("allergies", lea.pk),
+        {"allergens": ["milk"], "groups": ["pulses"], "other": "kiwis", "action": "save"},
+    )
+    client.post(
+        step_url("allergies", lea.pk), {"allergens": ["milk"], "groups": [], "action": "save"}
+    )
+
+    strict = lea.restrictions.filter(severity=STRICT)
+    assert strict.filter(allergen="milk").exists()
+    assert not strict.filter(food_group="pulses").exists()  # décoché : retiré
+    assert strict.filter(ingredient_name="kiwis").exists()  # le texte libre est conservé
+
+
+def test_the_styles_step_saves_cuisines_and_levels(fresh):
+    client, user = fresh
+
+    client.post(
+        step_url("styles"),
+        {
+            "liked_cuisines": ["italian"], "avoided_cuisines": ["indian"],
+            "spice_tolerance": "0", "exoticism": "2", "action": "save",
+        },
+    )  # fmt: skip
+
+    settings = HouseholdSettings.objects.get(household=household_of(user))
+    assert settings.liked_cuisines == ["italian"] and settings.avoided_cuisines == ["indian"]
+    assert (settings.spice_tolerance, settings.exoticism) == (0, 2)

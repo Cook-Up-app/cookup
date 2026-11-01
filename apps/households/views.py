@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 
-from . import services
+from . import restrictions, services
 from .exceptions import AccountAlreadyExists, InvitationInvalid, LastOwnerError
 from .forms import (
     AcceptInvitationForm,
@@ -18,6 +18,7 @@ from .forms import (
     InvitationForm,
     RestrictionForm,
     SettingsForm,
+    StylesForm,
     TasteForm,
     taste_ingredients,
 )
@@ -132,18 +133,26 @@ def diner_list(request: HttpRequest) -> HttpResponse:
     return render(request, "households/diners.html", {"diners": diners, "form": form})
 
 
+def _diner_page(request: HttpRequest, diner, form, restriction_form) -> HttpResponse:
+    context = {"diner": diner, "form": form, "restriction_form": restriction_form}
+    return render(request, "households/diner.html", context)
+
+
+def _own_diner(request: HttpRequest, pk):
+    return get_object_or_404(
+        Diner.objects.for_household(request.household).prefetch_related("restrictions"), pk=pk
+    )
+
+
 @require_http_methods(["GET", "POST"])
 @household_required
 def diner_detail(request: HttpRequest, pk) -> HttpResponse:
-    diner = get_object_or_404(
-        Diner.objects.for_household(request.household).prefetch_related("restrictions"), pk=pk
-    )
+    diner = _own_diner(request, pk)
     form = DinerForm(request.POST or None, instance=diner)
     if request.method == "POST" and request.membership.is_owner and form.is_valid():
         form.save()
         return redirect("households:diner", pk=diner.pk)
-    context = {"diner": diner, "form": form, "restriction_form": RestrictionForm()}
-    return render(request, "households/diner.html", context)
+    return _diner_page(request, diner, form, RestrictionForm())
 
 
 @require_POST
@@ -156,14 +165,15 @@ def diner_delete(request: HttpRequest, pk) -> HttpResponse:
 @require_POST
 @owner_required
 def restriction_add(request: HttpRequest, pk) -> HttpResponse:
-    diner = get_object_or_404(Diner.objects.for_household(request.household), pk=pk)
+    diner = _own_diner(request, pk)
     form = RestrictionForm(request.POST)
-    if form.is_valid():
-        restriction = form.save(commit=False)
-        restriction.diner = diner
-        restriction.save()
-    else:
-        messages.error(request, "Indiquez un allergène ou un ingrédient.")
+    if not form.is_valid():
+        return _diner_page(request, diner, DinerForm(instance=diner), form)
+    targets = form.targets()
+    services.add_restrictions(diner, form.cleaned_data["severity"], targets)
+    for target in targets:
+        notify = messages.success if target.known else messages.warning
+        notify(request, restrictions.describe(target))
     return redirect("households:diner", pk=diner.pk)
 
 
@@ -226,6 +236,18 @@ def preferences(request: HttpRequest) -> HttpResponse:
         form.save()
         return redirect("households:preferences")
     return render(request, "households/preferences.html", {"form": form})
+
+
+@require_http_methods(["GET", "POST"])
+@household_required
+def styles(request: HttpRequest) -> HttpResponse:
+    settings, _ = HouseholdSettings.objects.get_or_create(household=request.household)
+    form = StylesForm(request.POST or None, instance=settings)
+    if request.method == "POST" and request.membership.is_owner and form.is_valid():
+        form.save()
+        messages.success(request, "Styles de cuisine enregistrés.")
+        return redirect("households:styles")
+    return render(request, "households/styles.html", {"form": form})
 
 
 @require_http_methods(["GET", "POST"])

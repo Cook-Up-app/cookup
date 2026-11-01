@@ -8,9 +8,13 @@ from django.db import models
 from django.db.models import Q
 
 from apps.core.querysets import HouseholdQuerySet
-from apps.core.reference import Allergen, Diet, MealType
+from apps.core.reference import Allergen, Cuisine, Diet, FoodGroup, MealType
 
-WEIGHT_CRITERIA = ("taste", "rating", "freshness", "diversity", "antiwaste", "budget", "season")
+from . import restrictions
+
+WEIGHT_CRITERIA = (
+    "taste", "style", "rating", "freshness", "diversity", "antiwaste", "budget", "season",
+)  # fmt: skip
 MAX_WEIGHT = 100
 
 
@@ -135,6 +139,7 @@ class DinerRestriction(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     diner = models.ForeignKey(Diner, on_delete=models.CASCADE, related_name="restrictions")
     allergen = models.CharField(max_length=20, choices=Allergen.choices, blank=True)
+    food_group = models.CharField(max_length=20, choices=FoodGroup.choices, blank=True)
     ingredient_name = models.CharField("autre ingrédient", max_length=100, blank=True)
     severity = models.CharField(
         max_length=20, choices=Severity.choices, default=Severity.STRICT_ALLERGY
@@ -145,13 +150,34 @@ class DinerRestriction(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition=~Q(allergen="") | ~Q(ingredient_name=""),
+                condition=~Q(allergen="") | ~Q(food_group="") | ~Q(ingredient_name=""),
                 name="restriction_has_target",
             ),
         ]
 
     def __str__(self) -> str:
-        return self.allergen or self.ingredient_name
+        return self.label
+
+    @property
+    def label(self) -> str:
+        if self.allergen:
+            return str(Allergen(self.allergen).label)
+        if self.food_group:
+            return str(FoodGroup(self.food_group).label)
+        return self.ingredient_name
+
+    @property
+    def detail(self) -> str:
+        """Ce que la restriction exclut concrètement, pour que la saisie soit vérifiable."""
+        if self.food_group:
+            return f"Exclut : {restrictions.group_examples(self.food_group)}"
+        if self.ingredient_name and not self.allergen:
+            return "Texte libre : recherché dans le texte des recettes"
+        return ""
+
+    @property
+    def coverage(self) -> restrictions.Coverage:
+        return restrictions.coverage(self.allergen, self.food_group, self.ingredient_name)
 
 
 class Equipment(models.Model):
@@ -221,6 +247,19 @@ class HouseholdSettings(models.Model):
     weights = models.JSONField(default=dict, blank=True, validators=[validate_weights])
     # Ordre des rayons choisi par le foyer (vide : parcours de magasin type).
     aisle_order = ArrayField(models.CharField(max_length=20), default=list, blank=True)
+    # Styles de cuisine du foyer : influencent le menu sans jamais exclure une recette.
+    liked_cuisines = ArrayField(
+        models.CharField(max_length=20, choices=Cuisine.choices), default=list, blank=True
+    )
+    avoided_cuisines = ArrayField(
+        models.CharField(max_length=20, choices=Cuisine.choices), default=list, blank=True
+    )
+    spice_tolerance = models.PositiveSmallIntegerField(
+        "tolérance au piment", default=1, validators=[MaxValueValidator(3)]
+    )
+    exoticism = models.PositiveSmallIntegerField(
+        "goût pour les cuisines d'ailleurs", default=1, validators=[MaxValueValidator(2)]
+    )
     onboarded_at = models.DateTimeField(
         null=True, blank=True
     )  # assistant d'accueil terminé ou passé

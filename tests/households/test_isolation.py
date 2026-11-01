@@ -95,7 +95,8 @@ def test_members_cannot_manage_diners_or_allergies(owner, client):
     client.post(reverse("households:diner", args=[diner.pk]), {"first_name": "Hack"})
     assert (
         client.post(
-            reverse("households:restriction-add", args=[diner.pk]), {"allergen": "milk"}
+            reverse("households:restriction-add", args=[diner.pk]),
+            {"allergens": ["milk"], "severity": "strict_allergy"},
         ).status_code
         == 404
     )

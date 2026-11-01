@@ -1,5 +1,6 @@
 """Moteur de menus : Python pur, sans Django, donc testable sans base de données."""
 
+from . import style  # noqa: F401 - enregistre le critère « style »
 from .failure import FailureReport, NotEnoughCandidates
 from .planning import apply_leftovers, assign_modes
 from .rules import Violation, is_allowed, violations

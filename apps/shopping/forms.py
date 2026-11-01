@@ -45,6 +45,46 @@ class PantryForm(forms.ModelForm):
         labels = {"always_in_stock": "Toujours en stock (jamais dans la liste)"}
 
 
+class PantryBulkForm(forms.Form):
+    """Cocher plusieurs produits toujours en stock, rayon par rayon, et tout enregistrer d'un coup.
+
+    Les produits de base (sel, huile…) et ceux déjà au placard ne sont pas proposés.
+    """
+
+    FIELD_PREFIX = "aisle_"
+
+    def __init__(self, *args, household, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        stocked = PantryItem.objects.for_household(household).values("ingredient_id")
+        candidates = (
+            Ingredient.objects.filter(is_staple=False)
+            .exclude(pk__in=stocked)
+            .order_by("name")
+            .values_list("pk", "name", "aisle")
+        )
+        by_aisle: dict[str, list[tuple[str, str]]] = {code: [] for code in Aisle.values}
+        for pk, name, aisle in candidates:
+            by_aisle.setdefault(aisle, []).append((str(pk), name))
+        for code, label in Aisle.choices:
+            if by_aisle[code]:
+                self.fields[self.FIELD_PREFIX + code] = forms.MultipleChoiceField(
+                    label=str(label), choices=by_aisle[code], required=False,
+                    widget=forms.CheckboxSelectMultiple,
+                )  # fmt: skip
+
+    def aisle_fields(self):
+        return [self[name] for name in self.fields]
+
+    def clean(self):
+        cleaned = super().clean()
+        if not any(cleaned.get(name) for name in self.fields):
+            raise forms.ValidationError("Cochez au moins un produit.")
+        return cleaned
+
+    def selected_ids(self) -> list[int]:
+        return [int(pk) for name in self.fields for pk in self.cleaned_data.get(name, [])]
+
+
 class AisleOrderForm(forms.Form):
     """Un rang par rayon ; l'ordre résultant est mémorisé pour le foyer."""
 

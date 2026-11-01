@@ -14,8 +14,16 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 
+from . import restrictions
 from .exceptions import AccountAlreadyExists, InvitationInvalid, LastOwnerError
-from .models import Household, HouseholdEquipment, Invitation, Membership, TastePreference
+from .models import (
+    DinerRestriction,
+    Household,
+    HouseholdEquipment,
+    Invitation,
+    Membership,
+    TastePreference,
+)
 
 TOKEN_BYTES = 32
 
@@ -136,3 +144,59 @@ def set_tastes(diner, likes, dislikes, offered_ids) -> None:
         [TastePreference(diner=diner, ingredient=i, score=LIKE_SCORE) for i in likes]
         + [TastePreference(diner=diner, ingredient=i, score=DISLIKE_SCORE) for i in dislikes]
     )
+
+
+STRICT = DinerRestriction.Severity.STRICT_ALLERGY
+
+
+def _target_fields(target: restrictions.Target) -> dict[str, str]:
+    field = {
+        restrictions.Kind.ALLERGEN: "allergen",
+        restrictions.Kind.GROUP: "food_group",
+    }.get(target.kind, "ingredient_name")
+    return {field: target.value}
+
+
+def targets_from_input(allergens, groups, other: str) -> list[restrictions.Target]:
+    """Cibles cochées puis saisies à la main ; une cible n'apparaît qu'une fois."""
+    from apps.catalog.services import exact_name_resolver  # import paresseux : charge le catalogue
+
+    found = [restrictions.Target(restrictions.Kind.ALLERGEN, code) for code in allergens]
+    found += [restrictions.Target(restrictions.Kind.GROUP, code) for code in groups]
+    terms = restrictions.split_terms(other)
+    if terms:
+        resolver = exact_name_resolver()
+        found += [restrictions.recognise(term, resolver) for term in terms]
+    unique: dict[tuple, restrictions.Target] = {}
+    for target in found:
+        unique.setdefault((target.kind, target.value.lower()), target)
+    return list(unique.values())
+
+
+@transaction.atomic
+def add_restrictions(diner, severity: str, targets) -> None:
+    """Enregistre chaque cible ; une restriction déjà présente prend la nouvelle gravité."""
+    for target in targets:
+        fields = _target_fields(target)
+        key = {f"{name}__iexact": value for name, value in fields.items()}
+        restriction = DinerRestriction.objects.filter(diner=diner, **key).first()
+        if restriction is None:
+            DinerRestriction.objects.create(diner=diner, severity=severity, **fields)
+        elif restriction.severity != severity:
+            restriction.severity = severity
+            restriction.save(update_fields=["severity"])
+
+
+@transaction.atomic
+def sync_strict_selection(diner, allergens, groups) -> None:
+    """Aligne les allergies strictes « allergène » et « famille » sur la sélection donnée."""
+    for field, wanted in (("allergen", set(allergens)), ("food_group", set(groups))):
+        current = DinerRestriction.objects.filter(diner=diner, severity=STRICT).exclude(
+            **{field: ""}
+        )
+        current.exclude(**{f"{field}__in": wanted}).delete()
+        have = set(current.values_list(field, flat=True))
+        DinerRestriction.objects.bulk_create(
+            DinerRestriction(diner=diner, severity=STRICT, **{field: code})
+            for code in wanted - have
+        )

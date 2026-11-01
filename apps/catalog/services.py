@@ -1,6 +1,7 @@
 """Enregistrement et recherche de recettes : normalisation, déduplication, plein texte."""
 
 import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -31,6 +32,18 @@ PAGE_SIZE = 20
 def load_index() -> IngredientIndex:
     rows = Ingredient.objects.values_list("id", "name", "aliases")
     return IngredientIndex([(pk, name, aliases) for pk, name, aliases in rows])
+
+
+def exact_name_resolver() -> Callable[[str], str | None]:
+    """Fonction « texte -> nom canonique » pour les seuls ingrédients exactement reconnus."""
+    index = load_index()
+    names = dict(Ingredient.objects.values_list("id", "name"))
+
+    def resolve(text: str) -> str | None:
+        match = index.find(text)
+        return names[match.ingredient_id] if match and match.exact else None
+
+    return resolve
 
 
 @dataclass(frozen=True)

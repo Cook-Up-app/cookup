@@ -3,8 +3,8 @@
 from django import forms
 
 from apps.catalog.models import Ingredient
-from apps.core.reference import Allergen, Diet, MealType
-from apps.households.forms import WEEKDAYS, taste_ingredients
+from apps.core.reference import Diet, MealType
+from apps.households.forms import WEEKDAYS, RestrictionTargetsForm, taste_ingredients
 from apps.households.models import Diner, Equipment
 
 SERVINGS = [(str(n), str(n)) for n in range(1, 9)]
@@ -46,11 +46,9 @@ class DinerAddForm(forms.ModelForm):
         widgets = {"age_group": forms.RadioSelect}
 
 
-class AllergiesForm(forms.Form):
-    allergens = forms.MultipleChoiceField(
-        label="Allergies strictes", choices=Allergen.choices, required=False,
-        widget=forms.CheckboxSelectMultiple,
-    )  # fmt: skip
+class AllergiesForm(RestrictionTargetsForm):
+    require_choice = False
+    field_order = ["allergens", "groups", "other"]
 
 
 class DietsForm(forms.Form):

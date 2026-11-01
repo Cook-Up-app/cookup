@@ -18,9 +18,30 @@
   {% else %}
     <p class="muted">Rien pour le moment.</p>
   {% endif %}
-  <form method="post" class="card form-card stack mt">
-    {% csrf_token %}
-    {{ form }}
-    <button type="submit" class="btn btn-primary">Enregistrer</button>
-  </form>
+  <section class="card mt" data-filter-scope>
+    <h2>Ajouter plusieurs produits d'un coup</h2>
+    <p class="muted">Cochez tout ce que vous avez toujours en stock : ces produits n'apparaîtront plus dans vos courses.</p>
+    <form method="post" action="{% url 'shopping:pantry-bulk-add' %}" class="stack">
+      {% csrf_token %}
+      {{ bulk_form.non_field_errors }}
+      <div class="field"><label for="pantry-filter">Chercher un produit</label>
+        <input type="search" id="pantry-filter" data-filter-input autocomplete="off" placeholder="ex. riz, lait, yaourt">
+      </div>
+      {% for field in bulk_form.aisle_fields %}
+        <div class="filter-group">{{ field.as_field_group }}</div>
+      {% empty %}
+        <p class="muted">Tous les produits du catalogue sont déjà au placard.</p>
+      {% endfor %}
+      <div class="sticky-actions"><button type="submit" class="btn btn-primary btn-block">Ajouter les produits cochés</button></div>
+    </form>
+  </section>
+
+  <details class="card mt">
+    <summary><strong>Un produit précis : quantité ou à racheter</strong></summary>
+    <form method="post" class="form-card stack mt">
+      {% csrf_token %}
+      {{ form }}
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+  </details>
 {% endblock %}

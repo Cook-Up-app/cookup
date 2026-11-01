@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
 from apps.core.reference import Aisle
@@ -12,7 +13,7 @@ from apps.households.permissions import household_required
 from apps.planner.models import MenuPlan
 
 from . import services, sync
-from .forms import AisleOrderForm, ItemForm, PantryForm
+from .forms import AisleOrderForm, ItemForm, PantryBulkForm, PantryForm
 from .models import PantryItem, ShoppingItem
 
 
@@ -123,6 +124,13 @@ def item_add(request: HttpRequest, plan_pk) -> HttpResponse:
     return redirect("shopping:detail", plan_pk=plan_pk)
 
 
+def _pantry_page(request: HttpRequest, form, bulk_form) -> HttpResponse:
+    items = PantryItem.objects.for_household(request.household).select_related("ingredient")
+    return render(
+        request, "shopping/pantry.html", {"form": form, "bulk_form": bulk_form, "items": items}
+    )
+
+
 @require_http_methods(["GET", "POST"])
 @household_required
 def pantry(request: HttpRequest) -> HttpResponse:
@@ -135,16 +143,26 @@ def pantry(request: HttpRequest) -> HttpResponse:
             defaults={
                 "always_in_stock": data["always_in_stock"],
                 "quantity": data["quantity"],
-                "unit": _base_unit(data["ingredient"]),
+                "unit": services.base_unit(data["ingredient"]),
             },
         )
         return redirect("shopping:pantry")
-    items = PantryItem.objects.for_household(request.household).select_related("ingredient")
-    return render(request, "shopping/pantry.html", {"form": form, "items": items})
+    return _pantry_page(request, form, PantryBulkForm(household=request.household))
 
 
-def _base_unit(ingredient) -> str:
-    return ingredient.package_unit or ("g" if ingredient.density_g_per_ml is None else "ml")
+@require_POST
+@household_required
+def pantry_bulk_add(request: HttpRequest) -> HttpResponse:
+    bulk_form = PantryBulkForm(request.POST, household=request.household)
+    if not bulk_form.is_valid():
+        return _pantry_page(request, PantryForm(), bulk_form)
+    count = services.stock_always(request.household, bulk_form.selected_ids())
+    messages.success(
+        request,
+        ngettext("%(n)d produit ajouté au placard.", "%(n)d produits ajoutés au placard.", count)
+        % {"n": count},
+    )
+    return redirect("shopping:pantry")
 
 
 @require_POST

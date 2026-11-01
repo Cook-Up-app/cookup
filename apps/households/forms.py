@@ -2,9 +2,10 @@ from django import forms
 
 from apps.catalog.models import Ingredient
 from apps.catalog.text import stem_key
-from apps.core.reference import Diet, MealType
+from apps.core.reference import Allergen, Cuisine, Diet, FoodGroup, MealType
 from apps.core.reference import Equipment as EquipmentCode
 
+from . import services
 from .models import (
     MAX_WEIGHT,
     WEIGHT_CRITERIA,
@@ -16,6 +17,7 @@ from .models import (
     HouseholdSettings,
 )
 
+OTHER_MAX_LENGTH = 300
 WEEKDAYS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 
 
@@ -56,21 +58,49 @@ class DinerForm(forms.ModelForm):
         widgets = {"age_group": forms.RadioSelect}
 
 
-class RestrictionForm(forms.ModelForm):
-    class Meta:
-        model = DinerRestriction
-        fields = ["allergen", "ingredient_name", "severity"]
-        labels = {"allergen": "Allergène", "severity": "Gravité"}
-        help_texts = {
-            "ingredient_name": "Pour un aliment qui ne figure pas dans la liste ci-dessus."
-        }
-        widgets = {"severity": forms.RadioSelect}
+class RestrictionTargetsForm(forms.Form):
+    """Que faut-il éviter ? Des pastilles à cocher, plus un champ libre pour le reste."""
+
+    allergens = forms.MultipleChoiceField(
+        label="Allergènes courants", choices=Allergen.choices, required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )  # fmt: skip
+    groups = forms.MultipleChoiceField(
+        label="Familles d'aliments", choices=FoodGroup.choices, required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text="Un seul choix exclut tous les aliments de la famille.",
+    )  # fmt: skip
+    other = forms.CharField(
+        label="Autre aliment", required=False, max_length=OTHER_MAX_LENGTH,
+        widget=forms.TextInput(attrs={"placeholder": "ex. kiwi, noix de pécan"}),
+        help_text=(
+            "Un ou plusieurs, séparés par une virgule. Singulier ou pluriel, avec ou sans "
+            "accent : peu importe."
+        ),
+    )  # fmt: skip
+
+    require_choice = True  # l'assistant d'accueil accepte de ne rien déclarer
 
     def clean(self):
         cleaned = super().clean()
-        if not cleaned.get("allergen") and not cleaned.get("ingredient_name"):
-            raise forms.ValidationError("Indiquez un allergène ou un ingrédient.")
+        has_choice = any(cleaned.get(name) for name in ("allergens", "groups", "other"))
+        if self.require_choice and not has_choice:
+            raise forms.ValidationError("Cochez au moins une case ou écrivez un aliment.")
         return cleaned
+
+    def targets(self):
+        data = self.cleaned_data
+        return services.targets_from_input(data["allergens"], data["groups"], data["other"])
+
+
+class RestrictionForm(RestrictionTargetsForm):
+    severity = forms.ChoiceField(
+        label="Gravité",
+        choices=DinerRestriction.Severity.choices,
+        initial=DinerRestriction.Severity.STRICT_ALLERGY,
+        widget=forms.RadioSelect,
+    )
+    field_order = ["severity", "allergens", "groups", "other"]
 
 
 class EquipmentForm(forms.Form):
@@ -84,6 +114,7 @@ class EquipmentForm(forms.Form):
 
 WEIGHT_LABELS = {
     "taste": "Goûts",
+    "style": "Styles de cuisine",
     "rating": "Notes et favoris",
     "freshness": "Fraîcheur",
     "diversity": "Diversité",
@@ -152,6 +183,49 @@ class SettingsForm(forms.ModelForm):
             if self.cleaned_data.get(f"weight_{name}") is not None
         }
         return super().save(commit)
+
+
+SPICE_CHOICES = [
+    (0, "Pas du tout épicé"),
+    (1, "Un peu de piquant"),
+    (2, "Relevé"),
+    (3, "Très épicé"),
+]
+EXOTICISM_CHOICES = [
+    (0, "Plutôt traditionnel"),
+    (1, "Un peu d'ailleurs"),
+    (2, "J'aime voyager"),
+]
+
+
+class StylesForm(forms.ModelForm):
+    """Styles de cuisine du foyer : à privilégier, à éviter, piment, cuisines d'ailleurs."""
+
+    liked_cuisines = forms.MultipleChoiceField(
+        label="Cuisines que vous aimez", choices=Cuisine.choices, required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )  # fmt: skip
+    avoided_cuisines = forms.MultipleChoiceField(
+        label="Cuisines à éviter", choices=Cuisine.choices, required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )  # fmt: skip
+    spice_tolerance = forms.TypedChoiceField(
+        label="Piment", choices=SPICE_CHOICES, coerce=int, widget=forms.RadioSelect
+    )
+    exoticism = forms.TypedChoiceField(
+        label="Cuisines d'ailleurs", choices=EXOTICISM_CHOICES, coerce=int, widget=forms.RadioSelect
+    )
+
+    class Meta:
+        model = HouseholdSettings
+        fields = ["liked_cuisines", "avoided_cuisines", "spice_tolerance", "exoticism"]
+
+    def clean(self):
+        cleaned = super().clean()
+        both = set(cleaned.get("liked_cuisines") or []) & set(cleaned.get("avoided_cuisines") or [])
+        if both:
+            raise forms.ValidationError("Une cuisine ne peut pas être à la fois aimée et évitée.")
+        return cleaned
 
 
 COMMON_TASTE_INGREDIENTS = (

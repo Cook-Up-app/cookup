@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Styles de cuisine{% endblock %}
+{% block content %}
+  <header class="page-header"><div><h1>Styles de cuisine</h1><p>Ces préférences orientent les menus sans jamais exclure une recette : elles se changent quand vous voulez.</p></div></header>
+  <form method="post" class="form-card stack">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <section class="card">
+      <h2>Cuisines</h2>
+      {{ form.liked_cuisines.as_field_group }}
+      {{ form.avoided_cuisines.as_field_group }}
+    </section>
+    <section class="card">
+      <h2>Niveau</h2>
+      {{ form.spice_tolerance.as_field_group }}
+      {{ form.exoticism.as_field_group }}
+    </section>
+    {% if request.membership.is_owner %}<div class="sticky-actions"><button type="submit" class="btn btn-primary btn-block">Enregistrer</button></div>{% endif %}
+  </form>
+{% endblock %}

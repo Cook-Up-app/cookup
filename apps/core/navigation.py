@@ -50,6 +50,9 @@ HOUSEHOLD = (
         ("households:preferences",),
         mobile=False,
     ),
+    NavItem(
+        "Styles de cuisine", "heart", "households:styles", ("households:styles",), mobile=False
+    ),
     NavItem("Placard", "box", "shopping:pantry", ("shopping:pantry",), mobile=False),
 )
 ACCOUNT = (NavItem("Sécurité", "shield", "mfa_index", ("mfa_", "account_"), mobile=False),)

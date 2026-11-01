@@ -176,3 +176,21 @@ def add_manual_item(
         aisle=aisle,
         manual=True,
     )
+
+
+def base_unit(ingredient) -> str:
+    """Unité de stock d'un ingrédient : conditionnement, sinon grammes ou millilitres."""
+    return ingredient.package_unit or ("g" if ingredient.density_g_per_ml is None else "ml")
+
+
+def stock_always(household, ingredient_ids) -> int:
+    """Ajoute des produits « toujours en stock » en une fois ; l'existant reste inchangé."""
+    ingredients = list(Ingredient.objects.filter(pk__in=ingredient_ids))
+    PantryItem.objects.bulk_create(
+        (
+            PantryItem(household=household, ingredient=i, always_in_stock=True, unit=base_unit(i))
+            for i in ingredients
+        ),
+        ignore_conflicts=True,
+    )
+    return len(ingredients)

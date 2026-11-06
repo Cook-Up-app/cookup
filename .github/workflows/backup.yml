@@ -31,7 +31,7 @@ jobs:
           scripts/backup.sh
       - name: Conserver la sauvegarde
         if: env.SKIPPED != '1'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sauvegarde-${{ github.run_id }}
           path: backup.dump.enc
